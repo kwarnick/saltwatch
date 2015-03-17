@@ -32,6 +32,11 @@ def load_persistent_data():
     else:
         player_id_dict, player_name_dict = {}, {}
 
+    if os.path.isfile(MATCHES_FILENAME):
+        matches = pickle.load(open(MATCHES_FILENAME, 'rb'))
+    else:
+        matches = []
+
 
 def save_persistent_data():
     if player_id_dict and player_name_dict:
@@ -39,18 +44,35 @@ def save_persistent_data():
     else:
         pickle.dump([{}, {}], open(PLAYERS_FILENAME, 'wb'))
 
+    if matches:
+        pickle.dump(matches, open(MATCHES_FILENAME, 'wb'))
+    else:
+        pickle.dump([], open(MATCHES_FILENAME, 'wb'))
 
-def get_data():
+
+def get_state():
     s = requests.Session()
     s.headers.update(HEADERS)    
     r = s.get(STATE_JSON_URL)
     state = r.json()
-    print(state)
-
-    p1_id = get_player_id_by_name(state['p1name'])
-    p2_id = get_player_id_by_name(state['p2name'])
 
     return state
+
+
+def process_state(state):
+    global matches
+
+    if state['status'] == 1 or state['status'] == 2:
+        p1_id = get_player_id_by_name(state['p1name'])
+        p2_id = get_player_id_by_name(state['p2name'])
+        p1total = int(state['p1total'].replace(',',''))
+        p2total = int(state['p2total'].replace(',',''))
+        winner = int(state['status'])
+        last_match = [p1_id, p2_id, winner, p1total, p2total]
+        matches.append(last_match)
+        print('Match saved: ', last_match) 
+
+
 
 
 def get_player_id_by_name( pname ):
