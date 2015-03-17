@@ -31,5 +31,5 @@ if __name__ == "__main__":
                               on_message = on_message,
                               on_error = on_error,
                               on_close = on_close)
-    ws.on_open = on_open
+    #ws.on_open = on_open
     ws.run_forever()
