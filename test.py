@@ -6,7 +6,7 @@ import sys
 import saltwatch as sw
 
 last_time = time.clock()
-TIMER_RESET = 1.
+TIMER_RESET = 2.
 
 def on_message(ws, message):
     global last_time 
@@ -18,6 +18,7 @@ def on_message(ws, message):
         if time.time() - last_time > TIMER_RESET:
             last_time = time.clock()
             state = sw.get_state()
+            print(state)
             sw.process_state(state)
             #print(state_json)
 

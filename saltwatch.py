@@ -23,6 +23,8 @@ Connection: keep-alive
 """
 
 
+
+
 def load_persistent_data():
     global player_id_dict, player_name_dict
     global matches
@@ -62,7 +64,7 @@ def get_state():
 def process_state(state):
     global matches
 
-    if state['status'] == 1 or state['status'] == 2:
+    if state['status'] == u'1' or state['status'] == u'2':
         p1_id = get_player_id_by_name(state['p1name'])
         p2_id = get_player_id_by_name(state['p2name'])
         p1total = int(state['p1total'].replace(',',''))
