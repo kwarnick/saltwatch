@@ -1,15 +1,32 @@
 import websocket
 import _thread
 import time
+import http.client as httplib
+import sys
+import saltwatch as sw
+
+last_time = time.clock()
+TIMER_RESET = 0.5
 
 def on_message(ws, message):
+    global last_time 
+
     print(message)
+    if message == u'2::':
+        ws.send(message)
+    if message == u'3::':
+        if time.time() - last_time > TIMER_RESET:
+            last_time = time.clock()
+            state_json = sw.get_data()
+            #print(state_json)
+
 
 def on_error(ws, error):
     print(error)
 
 def on_close(ws):
     print("### closed ###")
+    sw.save_persistent_data()
 
 def on_open(ws):
     """    def run(*args):
@@ -24,12 +41,29 @@ def on_open(ws):
     return    
 
 
+def connect(server, port):
+    print("connecting to: %s:%d" %(server, port))
+
+    conn  = httplib.HTTPConnection(server + ":" + str(port))
+    conn.request('POST','/socket.io/1/')
+    resp  = conn.getresponse()
+    hskey = resp.read().decode('utf-8').split(':')[0]
+
+    ws = websocket.WebSocketApp(
+                    'ws://'+server+':'+str(port)+'/socket.io/1/websocket/'+hskey,
+                    on_open   = on_open,
+                    on_message = on_message,
+                    on_close = on_close)
+    
+    return ws
+
+
+
 if __name__ == "__main__":
+    sw.load_persistent_data()
+
     websocket.enableTrace(True)
-    #ws = websocket.WebSocketApp("ws://echo.websocket.org/",
-    ws = websocket.WebSocketApp("http://www-cdn-twitch.saltybet.com:8000",
-                              on_message = on_message,
-                              on_error = on_error,
-                              on_close = on_close)
-    #ws.on_open = on_open
+    
+    ws = connect('www-cdn-twitch.saltybet.com', 8000)
+
     ws.run_forever()

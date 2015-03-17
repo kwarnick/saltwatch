@@ -1,5 +1,4 @@
 import requests
-
 import pickle
 import os
 
@@ -41,16 +40,17 @@ def save_persistent_data():
         pickle.dump([{}, {}], open(PLAYERS_FILENAME, 'wb'))
 
 
-def get_match_data():
+def get_data():
     s = requests.Session()
     s.headers.update(HEADERS)    
     r = s.get(STATE_JSON_URL)
     state = r.json()
+    print(state)
 
     p1_id = get_player_id_by_name(state['p1name'])
     p2_id = get_player_id_by_name(state['p2name'])
 
-    return p1_id, p2_id
+    return state
 
 
 def get_player_id_by_name( pname ):

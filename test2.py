@@ -11,24 +11,24 @@ def connect(server, port):
     resp  = conn.getresponse() 
     hskey = resp.read().decode('utf-8').split(':')[0]
  
-    ws = websocket.WebSocket(
+    ws = websocket.WebSocketApp(
                     'ws://'+server+':'+str(port)+'/socket.io/1/websocket/'+hskey,
-                    onopen   = _onopen,
-                    onmessage = _onmessage,
-                    onclose = _onclose)
+                    on_open   = on_open,
+                    on_message = on_message,
+                    on_close = on_close)
     
     return ws
         
         
-def _onopen():
+def on_open(ws):
     print("opened!")
  
  
-def _onmessage(msg):
+def on_message(ws, msg):
     print("msg: " + str(msg))
  
  
-def _onclose():
+def on_close(ws):
     print("closed!")
  
  
@@ -41,8 +41,9 @@ if __name__ == '__main__':
     port = int(sys.argv[2])
     
     ws = connect(server, port)
-    
-    try:
-        asyncore.loop()
-    except KeyboardInterrupt:
-        ws.close()
+
+    ws.run_forever()
+    #try:
+    #    asyncore.loop()
+    #except KeyboardInterrupt:
+    #    ws.close()
