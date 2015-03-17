@@ -5,7 +5,7 @@ import http.client as httplib
 import sys
 import saltwatch as sw
 
-last_time = time.clock()
+last_time = time.time()
 TIMER_RESET = 2.
 
 def on_message(ws, message):
@@ -16,7 +16,8 @@ def on_message(ws, message):
         ws.send(message)
     if message == u'3::':
         if time.time() - last_time > TIMER_RESET:
-            last_time = time.clock()
+            print(time.time() - last_time)
+            last_time = time.time()
             state = sw.get_state()
             print(state)
             sw.process_state(state)
