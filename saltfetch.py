@@ -65,17 +65,33 @@ def process_state(state):
     
     # Check for notification of a winner
     if state['status'] == u'1' or state['status'] == u'2':
-        ## Potentially include logic to identify game mode here first
+        # If it's counting down to a tournament, we're in match mode
+        if u'tournament' in state['remaining']:
+            save_match(state)
+        # If it's counting how many players are left in the bracket, we're in tournament mode
+        elif u'bracket' in state['remaining']:
+            save_match(state)
+        # If it's counting ...., we're in exhibition mode. Don't count these - can't handle teams.    
+        elif u'dummy' in state['remaining']:
+            print('Exhibition match, not saved')
+        # Nothing should reach this state. If something does, fix it!
+        else:
+            print('Mode not recognized!')
+            with open('help_me_id_this.txt', 'a') as myfile:
+                myfile.write(str(state))
 
-        p1_id = get_player_id_by_name(state['p1name'])  # ID for P1
-        p2_id = get_player_id_by_name(state['p2name'])  # ID for P2
-        winner = int(state['status'])-1                 # Winner - 0/1 for p1/p2
-        p1total = int(state['p1total'].replace(',','')) # $ bet on P1
-        p2total = int(state['p2total'].replace(',','')) # $ bet on P2
-        timestamp = int(time.time())                    # Timestamp (Unix epoch seconds)
-        last_match = [p1_id, p2_id, winner, p1total, p2total, timestamp]
-        matches.append(last_match)
-        print('Match saved: ', last_match) 
+
+def save_match(state):
+    p1_id = get_player_id_by_name(state['p1name'])  # ID for P1
+    p2_id = get_player_id_by_name(state['p2name'])  # ID for P2
+    winner = int(state['status'])-1                 # Winner - 0/1 for p1/p2
+    p1total = int(state['p1total'].replace(',','')) # $ bet on P1
+    p2total = int(state['p2total'].replace(',','')) # $ bet on P2
+    timestamp = int(time.time())                    # Timestamp (Unix epoch seconds)
+    last_match = [p1_id, p2_id, winner, p1total, p2total, timestamp]
+    matches.append(last_match)
+    print('Match saved: ', last_match) 
+
 
 
 def get_player_id_by_name( pname ):
