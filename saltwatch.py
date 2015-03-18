@@ -43,6 +43,13 @@ def on_close(ws):
     sf.save_persistent_data()
     print("### closed ###")
 
+    # Sleep for five minutes
+    time.sleep(300)  
+    # Attempt reconnect
+    websocket.enableTrace(True)
+    ws = connect('www-cdn-twitch.saltybet.com', 8000)
+    ws.run_forever()
+
 
 def on_open(ws):
     print("### open ###")

@@ -63,17 +63,28 @@ def get_state():
 def process_state(state):
     global matches
     
-    # Check for notification of a winner
+    ## Consider also using alerts to track changes in game mode, rather than just identifying mode by the 'remaining' message.
+    # Check for notification of a winner in the status
     if state['status'] == u'1' or state['status'] == u'2':
+
+        # Log the state regardless of other content for debugging purposes
+        with open('win_state_log.txt', 'a') as myfile:
+            myfile.write(str(state)+'\n')
+
         # If it's counting down to a tournament, we're in match mode
-        if u'tournament' in state['remaining']:
+        if u'tournament' in state['remaining'] or u'Tournament' in state['remaining']:
             save_match(state)
+        
         # If it's counting how many players are left in the bracket, we're in tournament mode
+        # Does this catch the outcomes of the final tournament match? It might not produce state notifications in the same way.
         elif u'bracket' in state['remaining']:
             save_match(state)
-        # If it's counting ...., we're in exhibition mode. Don't count these - can't handle teams.    
-        elif u'dummy' in state['remaining']:
+        
+        # If it's counting down the exhibition matches or announcing matchmaking mode is next, we're in exhibition mode. 
+        # Don't count these - can't handle custom teams. Need OCR/CV to identify what players are on each team.    
+        elif u'exhibition' in state['remaining']:
             print('Exhibition match, not saved')
+        
         # Nothing should reach this state. If something does, fix it!
         else:
             print('Mode not recognized!')
