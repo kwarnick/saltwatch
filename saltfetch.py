@@ -78,7 +78,7 @@ def process_state(state):
         else:
             print('Mode not recognized!')
             with open('help_me_id_this.txt', 'a') as myfile:
-                myfile.write(str(state))
+                myfile.write(str(state)+'\n')
 
 
 def save_match(state):
