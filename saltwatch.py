@@ -12,7 +12,7 @@ last_state_check = time.time()
 last_data_write = time.time()
 STATE_CHECK_COOLDOWN = 2.    # Don't get state twice in a cooldown period - prevent duplicates
 DATA_WRITE_PERIOD = 1*60*60  # Save data to disk evey hour
-
+CONNECTION_RETRY_COOLDOWN = 300 # If connection fails, try to reconnect in five minutes
 
 def on_message(ws, message):
     print(message)
@@ -43,8 +43,9 @@ def on_close(ws):
     sf.save_persistent_data()
     print("### closed ###")
 
-    # Sleep for five minutes
-    time.sleep(300)  
+    # Retry connection after cooldown period
+    print('Waiting {:d}s to reconnect'.format(CONNECTION_RETRY_COOLDOWN))
+    time.sleep(CONNECTION_RETRY_COOLDOWN)  
     # Attempt reconnect
     websocket.enableTrace(True)
     ws = connect('www-cdn-twitch.saltybet.com', 8000)
