@@ -116,6 +116,8 @@ def process_state(state):
 
 
 def save_match(state):
+    global mode
+
     p1_id = get_player_id_by_name(state['p1name'])  # ID for P1
     p2_id = get_player_id_by_name(state['p2name'])  # ID for P2
     winner = int(state['status'])-1                 # Winner - 0/1 for p1/p2
@@ -124,7 +126,7 @@ def save_match(state):
     timestamp = int(time.time())                    # Timestamp (Unix epoch seconds)
     last_match = [p1_id, p2_id, winner, p1total, p2total, timestamp]
     matches.append(last_match)
-    print('Match saved: ', last_match) 
+    print(mode+' match saved: '+str(last_match)) 
 
 
 
