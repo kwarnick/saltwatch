@@ -22,6 +22,13 @@ HEADERS = {
         'Connection': 'keep-alive',
 }
 
+# Modes
+MATCHMAKING = 0
+EXHIBITION = 1
+TOURNAMENT = 2
+mode = []
+
+
 
 def load_persistent_data():
     global player_id_dict, player_name_dict
@@ -71,20 +78,28 @@ def process_state(state):
         with open('win_state_log.txt', 'a') as myfile:
             myfile.write(str(state)+'\n')
 
-        # If it's counting down to a tournament, we're in match mode
-        # Last match before tournament has different message, catch it specifically
-        if u'until the next tournament' in state['remaining'] or u'Tournament mode will be activated' in state['remaining']:
+        # Detect 'remaining' messages indicating matchmaking matches
+        """u'100 more matches until the next tournament!'
+           u'Tournament mode will be activated after the next match!'
+        """
+        if (u'until the next tournament' in state['remaining'] 
+                or u'Tournament mode will be activated' in state['remaining']):
             save_match(state)
         
-        # If it's counting how many players are left in the bracket, we're in tournament mode
-        # Final round message does not include the word "bracket", catch it specifically
-        elif u'left in the bracket' in state['remaining'] or u'FINAL ROUND' in state['remaining']:
+        # Detect 'remaining' messages indicating tournament matches
+        """u'16 characters are left in the bracket!'
+           u'FINAL ROUND! Stay tuned for exhibitions after the tournament!'
+        """
+        elif (u'bracket' in state['remaining'] 
+                or u'FINAL ROUND' in state['remaining']):
             save_match(state)
         
-        # If it's counting down the exhibition matches or announcing matchmaking mode is next, we're in exhibition mode. 
-        # Last exhibition match has a different message, catch it specifically
+        # Detect 'remaining' message indicating exhibition matches
         # Don't count these - can't handle custom teams. Need OCR/CV to identify what players are on each team.    
-        elif u'exhibition matches left' in state['remaining'] or u'Matchmaking mode will be activated' in state['remaining']:
+        """u'25 exhibition matches left!'
+           u'Matchmaking mode will be activated after the next exhibition match!'
+        """
+        elif u'exhibition match' in state['remaining']:
             print('Exhibition match, not saved')
         
         # Nothing should reach this state. If something does, fix it!
