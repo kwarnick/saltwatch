@@ -81,22 +81,28 @@ def process_state(state):
         ## Detect game mode from the 'remaining' message, which was written before the match whose results we are collecting ##
 
         # Detect 'remaining' messages indicating matchmaking matches:
-        # u'100 more matches until the next tournament!'
+        # u'99 more matches until the next tournament!' (not 100 matches)
         # u'Tournament mode will be activated after the next match!'
-        if (u'tournament' in state['remaining'] or u'Tournament' in state['remaining']):
+        if ((u'tournament' in state['remaining'] or u'Tournament' in state['remaining']) 
+                and state['remaining'] != u'100 more matches until the next tournament!'):
             save_match(state)
+            print('Matchmaking match saved')
         
         # Detect 'remaining' messages indicating tournament matches:
-        # u'16 characters are left in the bracket!'
+        # u'15 characters are left in the bracket!' (not 16 characters)
         # u'FINAL ROUND! Stay tuned for exhibitions after the tournament!'
-        elif (u'bracket' in state['remaining'] or u'FINAL' in state['remaining']):
+        elif ((u'bracket' in state['remaining'] or u'FINAL' in state['remaining']) 
+                and state['remaining'] != u'16 characters are left in the bracket!'):
             save_match(state)
+            print('Tournament match saved')
         
         # Detect 'remaining' message indicating exhibition matches:
-        # u'25 exhibition matches left!'
+        # u'24 exhibition matches left!' (not 25 matches)
         # u'Matchmaking mode will be activated after the next exhibition match!'
+        # u'100 more matches until the next tournament!'
         # (Don't count these - can't handle custom teams. Need OCR/CV to identify what players are on each team.)    
-        elif (u'exhibition match' in state['remaining']):
+        elif ((u'exhibition match' in state['remaining'] or state['remaining'] == u'100 more matches until the next tournament!')
+                and state['remaining'] != u'25 exhibition matches left!':
             print('Exhibition match, not saved')
         
         # Nothing should reach this state. If something does, fix it!
