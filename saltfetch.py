@@ -72,17 +72,19 @@ def process_state(state):
             myfile.write(str(state)+'\n')
 
         # If it's counting down to a tournament, we're in match mode
-        if u'tournament' in state['remaining'] or u'Tournament' in state['remaining']:
+        # Last match before tournament has different message, catch it specifically
+        if u'until the next tournament' in state['remaining'] or u'Tournament mode will be activated' in state['remaining']:
             save_match(state)
         
         # If it's counting how many players are left in the bracket, we're in tournament mode
-        # Does this catch the outcomes of the final tournament match? It might not produce state notifications in the same way.
-        elif u'bracket' in state['remaining']:
+        # Final round message does not include the word "bracket", catch it specifically
+        elif u'left in the bracket' in state['remaining'] or u'FINAL ROUND' in state['remaining']:
             save_match(state)
         
         # If it's counting down the exhibition matches or announcing matchmaking mode is next, we're in exhibition mode. 
+        # Last exhibition match has a different message, catch it specifically
         # Don't count these - can't handle custom teams. Need OCR/CV to identify what players are on each team.    
-        elif u'exhibition' in state['remaining']:
+        elif u'exhibition matches left' in state['remaining'] or u'Matchmaking mode will be activated' in state['remaining']:
             print('Exhibition match, not saved')
         
         # Nothing should reach this state. If something does, fix it!
