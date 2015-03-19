@@ -23,10 +23,11 @@ HEADERS = {
 }
 
 # Modes
-MATCHMAKING = 0
-EXHIBITION = 1
-TOURNAMENT = 2
-mode = []
+MATCHMAKING = 'M'
+EXHIBITION = 'E'
+TOURNAMENT = 'T'
+UNKNOWN = 'U'
+mode = UNKNOWN  
 
 
 
@@ -68,22 +69,19 @@ def get_state():
 
 
 def process_state(state):
-    global matches
+    global matches, mode
     
     ## Consider also using alerts to track changes in game mode, rather than just identifying mode by the 'remaining' message.
     # Check for notification of a winner in the status
     if state['status'] == u'1' or state['status'] == u'2':
-
-        # Log all win states for debugging purposes
-        with open('win_state_log.txt', 'a') as myfile:
-            myfile.write(str(state)+'\n')
-        
+    
         ## Detect game mode from the 'remaining' message, which was written before the match whose results we are collecting ##
 
         # Detect 'remaining' messages indicating matchmaking matches:
         # u'99 more matches until the next tournament!' (not 100 matches)
         # u'Tournament mode will be activated after the next match!'
         if ((u'tournament' in state['remaining'] or u'Tournament' in state['remaining']) and state['remaining'] != u'100 more matches until the next tournament!'):
+            mode = MATCHMAKING
             save_match(state)
             print('Matchmaking match saved')
         
@@ -91,6 +89,7 @@ def process_state(state):
         # u'15 characters are left in the bracket!' (not 16 characters)
         # u'FINAL ROUND! Stay tuned for exhibitions after the tournament!'
         elif ((u'bracket' in state['remaining'] or u'FINAL' in state['remaining']) and state['remaining'] != u'16 characters are left in the bracket!'):
+            mode = TOURNAMENT
             save_match(state)
             print('Tournament match saved')
         
@@ -100,13 +99,20 @@ def process_state(state):
         # u'100 more matches until the next tournament!'
         # (Don't count these - can't handle custom teams. Need OCR/CV to identify what players are on each team.)    
         elif ((u'exhibition match' in state['remaining'] or state['remaining'] == u'100 more matches until the next tournament!') and state['remaining'] != u'25 exhibition matches left!'):
+            mode = EXHIBITION
             print('Exhibition match, not saved')
         
         # Nothing should reach this state. If something does, fix it!
         else:
+            mode = UNKNOWN
             print('Mode not recognized!')
             with open('help_me_id_this.txt', 'a') as myfile:
                 myfile.write(str(state)+'\n')
+
+
+        # Log all win states for debugging purposes
+        with open('win_state_log.txt', 'a') as myfile:
+            myfile.write(mode+' '+str(state)+'\n')
 
 
 def save_match(state):
