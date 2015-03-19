@@ -82,16 +82,14 @@ def process_state(state):
         """u'100 more matches until the next tournament!'
            u'Tournament mode will be activated after the next match!'
         """
-        if (u'until the next tournament' in state['remaining'] 
-                or u'Tournament mode will be activated' in state['remaining']):
+        if (u'tournament' in state['remaining'] or u'Tournament' in state['remaining']):
             save_match(state)
         
         # Detect 'remaining' messages indicating tournament matches
         """u'16 characters are left in the bracket!'
            u'FINAL ROUND! Stay tuned for exhibitions after the tournament!'
         """
-        elif (u'bracket' in state['remaining'] 
-                or u'FINAL ROUND' in state['remaining']):
+        elif (u'bracket' in state['remaining'] or u'FINAL' in state['remaining']):
             save_match(state)
         
         # Detect 'remaining' message indicating exhibition matches
@@ -99,7 +97,7 @@ def process_state(state):
         """u'25 exhibition matches left!'
            u'Matchmaking mode will be activated after the next exhibition match!'
         """
-        elif u'exhibition match' in state['remaining']:
+        elif (u'exhibition match' in state['remaining']):
             print('Exhibition match, not saved')
         
         # Nothing should reach this state. If something does, fix it!
