@@ -83,7 +83,6 @@ def process_state(state):
         if ((u'tournament' in state['remaining'] or u'Tournament' in state['remaining']) and state['remaining'] != u'100 more matches until the next tournament!'):
             mode = MATCHMAKING
             save_match(state)
-            print('Matchmaking match saved')
         
         # Detect 'remaining' messages indicating tournament matches:
         # u'15 characters are left in the bracket!' (not 16 characters)
@@ -91,7 +90,6 @@ def process_state(state):
         elif ((u'bracket' in state['remaining'] or u'FINAL' in state['remaining']) and state['remaining'] != u'16 characters are left in the bracket!'):
             mode = TOURNAMENT
             save_match(state)
-            print('Tournament match saved')
         
         # Detect 'remaining' message indicating exhibition matches:
         # u'24 exhibition matches left!' (not 25 matches)
@@ -100,7 +98,6 @@ def process_state(state):
         # (Don't count these - can't handle custom teams. Need OCR/CV to identify what players are on each team.)    
         elif ((u'exhibition match' in state['remaining'] or state['remaining'] == u'100 more matches until the next tournament!') and state['remaining'] != u'25 exhibition matches left!'):
             mode = EXHIBITION
-            print('Exhibition match, not saved')
         
         # Nothing should reach this state. If something does, fix it!
         else:
