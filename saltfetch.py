@@ -74,9 +74,11 @@ def process_state(state):
     # Check for notification of a winner in the status
     if state['status'] == u'1' or state['status'] == u'2':
 
-        # Log the state regardless of other content for debugging purposes
+        # Log all win states for debugging purposes
         with open('win_state_log.txt', 'a') as myfile:
             myfile.write(str(state)+'\n')
+        
+        ## Detect game mode from the 'remaining' message, which was written before the match whose results we are collecting ##
 
         # Detect 'remaining' messages indicating matchmaking matches:
         # u'100 more matches until the next tournament!'
