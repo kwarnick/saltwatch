@@ -80,7 +80,7 @@ def process_state(state):
         # Detect 'remaining' messages indicating matchmaking matches:
         # u'99 more matches until the next tournament!' (not 100 matches)
         # u'Tournament mode will be activated after the next match!'
-        if ((u'tournament' in state['remaining'] or u'Tournament' in state['remaining']) and state['remaining'] != u'100 more matches until the next tournament!') or state['remaining'] == u'16 characters are left in the bracket!':
+        if ((u'until the next tournament' in state['remaining'] or u'Tournament mode will be activated' in state['remaining']) and state['remaining'] != u'100 more matches until the next tournament!') or state['remaining'] == u'16 characters are left in the bracket!':
             mode = MATCHMAKING
             save_match(state)
         
