@@ -80,14 +80,14 @@ def process_state(state):
         # Detect 'remaining' messages indicating matchmaking matches:
         # u'99 more matches until the next tournament!' (not 100 matches)
         # u'Tournament mode will be activated after the next match!'
-        if ((u'tournament' in state['remaining'] or u'Tournament' in state['remaining']) and state['remaining'] != u'100 more matches until the next tournament!'):
+        if ((u'tournament' in state['remaining'] or u'Tournament' in state['remaining']) and state['remaining'] != u'100 more matches until the next tournament!') or state['remaining' == u'16 characters are left in the bracket!':
             mode = MATCHMAKING
             save_match(state)
         
         # Detect 'remaining' messages indicating tournament matches:
         # u'15 characters are left in the bracket!' (not 16 characters)
         # u'FINAL ROUND! Stay tuned for exhibitions after the tournament!'
-        elif ((u'bracket' in state['remaining'] or u'FINAL' in state['remaining']) and state['remaining'] != u'16 characters are left in the bracket!'):
+        elif ((u'bracket' in state['remaining'] or u'FINAL' in state['remaining']) and state['remaining'] != u'16 characters are left in the bracket!') or state['remaining'] == u'25 exhibition matches left!':
             mode = TOURNAMENT
             save_match(state)
         
@@ -96,7 +96,7 @@ def process_state(state):
         # u'Matchmaking mode will be activated after the next exhibition match!'
         # u'100 more matches until the next tournament!'
         # (Don't count these - can't handle custom teams. Need OCR/CV to identify what players are on each team.)    
-        elif ((u'exhibition match' in state['remaining'] or state['remaining'] == u'100 more matches until the next tournament!') and state['remaining'] != u'25 exhibition matches left!'):
+        elif ((u'exhibition match' in state['remaining'] or state['remaining'] == u'100 more matches until the next tournament!') and state['remaining'] != u'25 exhibition matches left!') or state['remaining'] == u'100 more matches until the next tournament!':
             mode = EXHIBITION
         
         # Nothing should reach this state. If something does, fix it!
