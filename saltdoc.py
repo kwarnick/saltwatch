@@ -120,6 +120,14 @@ def do_checkup(matches, pid_dict, pname_dict):
     if not check_dictionary_conciseness(matches, pname_dict):
         print('WARNING: Dictionary is not concise.')
 
+
+def combine_dictionaries(pname_dict1, pname_dict2):
+    full_name_set = {pname_dict1.keys()} + {pname_dict2.keys()}
+    pid_dict, pname_dict = build_new_dicts(full_name_set) 
+
+    return pid_dict, pname_dict
+
+
 if __name__ == "__main__":
     sf.load_persistent_data()
     do_checkup(sf.matches, sf.player_id_dict, sf.player_name_dict)

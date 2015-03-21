@@ -9,8 +9,8 @@ import saltfetch as sf
 
 # Global variables/params for timed behaviors
 STATE_CHECK_COOLDOWN = 2.    # Don't get state twice in a cooldown period - prevent duplicates
-DATA_WRITE_PERIOD = 1*60*60  # Save data to disk evey hour
-CONNECTION_RETRY_COOLDOWN = 300 # If connection fails, try to reconnect in five minutes
+DATA_WRITE_PERIOD = 1*60*60  # Save data to disk every hour
+CONNECTION_RETRY_COOLDOWN = 30  # If connection fails, try to reconnect after a cooldown
 last_state_check = time.time()-STATE_CHECK_COOLDOWN # Start with no cooldown
 last_data_write = time.time()
 
