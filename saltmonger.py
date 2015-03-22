@@ -3,6 +3,7 @@ Relies on saltmind for outcome prediction and bet recommendations.
 """
 
 import requests
+import random
 
 LOGIN_URL = 'http://www.saltybet.com/authenticate?signin=1'
 LOGIN_PAYLOAD = {'email': 'giant_snark@myway.com',
@@ -43,9 +44,23 @@ def get_tournament_balance():
 
 
 def place_bet(player, wager):
-    # Example bet payload: {'selectedplayer': 'player1', 'wager': 100}
+    # Example bet payload: {'selectedplayer': 'player2', 'wager': 100}
     r = s.post(BET_URL, data={'selectedplayer': 'player'+str(player+1), 'wager': wager})
         
     if r.content=='1':
         return True
     return False
+
+
+def get_random_bet(wager=1):
+    player = random.randint(0,1)
+    return player, wager
+
+
+def place_random_bet(wager=1):
+    player, wager = get_random_bet(wager)
+    return place_bet(player, wager)
+
+
+
+
