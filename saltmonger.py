@@ -4,6 +4,8 @@ Relies on saltmind for outcome prediction and bet recommendations.
 
 import requests
 import random
+import saltprocessing as sp
+
 
 LOGIN_URL = 'http://www.saltybet.com/authenticate?signin=1'
 LOGIN_PAYLOAD = {'email': 'giant_snark@myway.com',
@@ -48,7 +50,9 @@ def place_bet(player, wager):
     r = s.post(BET_URL, data={'selectedplayer': 'player'+str(player+1), 'wager': wager})
         
     if r.content=='1':
+        print('Bet {:d} on player {:d}'.format(wager, player+1))
         return True
+    print('Bet placement failed')
     return False
 
 
@@ -62,5 +66,7 @@ def place_random_bet(wager=1):
     return place_bet(player, wager)
 
 
-
-
+def act_on_processed_state(mode, status, match):
+    if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
+        if status == sp.OPEN:
+            place_random_bet()

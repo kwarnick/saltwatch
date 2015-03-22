@@ -7,6 +7,10 @@ import pickle
 import saltprocessing as sp
 
 
+PLAYERS_FILENAME = 'players.p'
+MATCHES_FILENAME = 'matches.p'
+
+
 def load_persistent_data():
     global player_id_dict, player_name_dict
     global matches
@@ -36,17 +40,9 @@ def save_persistent_data():
         pickle.dump([], open(MATCHES_FILENAME, 'wb'))
 
 
-def save_match(state):
-    p1_id = get_player_id_by_name(state['p1name'])  # ID for P1
-    p2_id = get_player_id_by_name(state['p2name'])  # ID for P2
-    winner = int(state['status'])-1                 # Winner - 0/1 for p1/p2
-    p1total = int(state['p1total'].replace(',','')) # $ bet on P1
-    p2total = int(state['p2total'].replace(',','')) # $ bet on P2
-    timestamp = int(time.time())                    # Timestamp (Unix epoch seconds)
-    last_match = [p1_id, p2_id, winner, p1total, p2total, timestamp]
-    matches.append(last_match)
-    print(sp.mode+' match saved: '+str(last_match))
-
+def save_match(match):
+    global matches 
+    matches.append(match)
 
 
 def get_player_id_by_name(pname):
@@ -65,3 +61,10 @@ def get_player_id_by_name(pname):
 
     return player_id_dict[pname]
 
+
+def act_on_processed_state(mode, status, match):
+
+    if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
+        if status == sp.RESULTS:
+            save_match(match)
+            print(mode+' match saved: '+str(match))
