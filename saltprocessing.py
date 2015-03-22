@@ -100,7 +100,7 @@ def identify_mode(state, status):
 
         # u'16 characters are left in the bracket!'
         # u'FINAL ROUND! Stay tuned for exhibitions after the tournament!'
-        elif (u'characters left in the bracket!' in state['remaining'] or
+        elif (u'characters are left in the bracket!' in state['remaining'] or
           state['remaining'] == u'FINAL ROUND! Stay tuned for exhibitions after the tournament!'):
             mode = TOURNAMENT
 

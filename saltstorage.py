@@ -9,7 +9,8 @@ import saltprocessing as sp
 
 PLAYERS_FILENAME = 'players.p'
 MATCHES_FILENAME = 'matches.p'
-
+player_id_dict, player_name_dict = {}, {}
+matches = []
 
 def load_persistent_data():
     global player_id_dict, player_name_dict

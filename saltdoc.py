@@ -4,9 +4,6 @@ Primarily to remove old/invalid/unwanted characters and clean up the indexing.
 """
 
 import numpy as np
-import saltfetch as sf
-
-
 
 
 def check_dictionary_reversibility(dict1, dict2):
@@ -54,10 +51,11 @@ def translate_matches_to_new_dict(matches, old_pname_dict, new_pid_dict):
         new_match = match
         valid_entry = True
 
+        # Translate each match, skipping ones that include an untranslatable name
         for i in range(2):
-            name = old_pname_dict[new_match[i]]
+            name = old_pname_dict[new_match[i]]     # Get player's name
             try:
-                new_id = new_pid_dict[name]
+                new_id = new_pid_dict[name]         # Translate to new ID
             except KeyError:
                 print('{} not found in new player name list, match skipped: '.format(name))
                 print(match)
@@ -66,7 +64,7 @@ def translate_matches_to_new_dict(matches, old_pname_dict, new_pid_dict):
             new_match[i] = new_id
 
         if valid_entry:
-            new_matches.append[new_match]
+            new_matches.append(new_match)
 
     print('{:d} matches translated, {:d} skipped'.format(len(new_matches), len(matches)-len(matches)))
 
@@ -88,37 +86,53 @@ def check_matches_translatability(matches, pname_dict):
     return translatable
 
 
-def check_dictionary_conciseness(matches, pname_dict):
+def check_dictionary_conciseness(matches, pname_dict, return_concise_names=False):
     print('Checking if all {:d} player IDs appear in at least one match'.format(len(pname_dict)))
 
     concise = True
+    concise_names_list = []
     for pid in pname_dict.keys():
         num_appearances = np.sum(np.logical_or(np.array(matches)[:][:,0]==pid, np.array(matches)[:][:,1]==pid))
         if num_appearances == 0:
-            print('\'{}\' does not appear in any match'.format(name))
+            print('{} does not appear in any match'.format(pname_dict[pid]))
             concise = False
+        else:
+            concise_names_list.append(pname_dict[pid])
 
-    return concise
+    if return_concise_names:
+        return concise, concise_names_list
+    else:
+        return concise
 
 
 def do_checkup(matches, pid_dict, pname_dict):
+    healthy = True
+
     # Check that dictionaries are 1-1 mappings (bijections)
     if not check_dictionary_value_uniqueness(pid_dict):
         print('WARNING: Player ID dictionary has duplicate values')
+        healthy = False
     if not check_dictionary_value_uniqueness(pname_dict):
         print('WARNING: Player name dictionary has duplicate values')
+        healthy = False        
     if not check_dictionary_reversibility(pid_dict, pname_dict):
         print('WARNING: Player ID dictionary is not reversible by player name dictionary')
+        healthy = False
     if not check_dictionary_reversibility(pname_dict, pid_dict):
         print('WARNING: Player name dictionary is not reversible by player name dictionary')
+        healthy = False
     
     # Check that matches are fully translatable 
     if not check_matches_translatability(matches, pname_dict):
         print('WARNING: Matches are not all translatable.')
+        healthy = False
 
     # Check that dictionary contains no unnecessary entries (all entries appear in at least one match)
     if not check_dictionary_conciseness(matches, pname_dict):
         print('WARNING: Dictionary is not concise.')
+        healthy = False
+
+    return healthy  
 
 
 def combine_dictionaries(pname_dict1, pname_dict2):
@@ -128,7 +142,49 @@ def combine_dictionaries(pname_dict1, pname_dict2):
     return pid_dict, pname_dict
 
 
-if __name__ == "__main__":
-    sf.load_persistent_data()
-    do_checkup(sf.matches, sf.player_id_dict, sf.player_name_dict)
+def do_surgery_remove_teams(matches, pid_dict, pname_dict):
+    if (do_checkup(matches, pid_dict, pname_dict)):
+        print('Health check passed. Proceeding with team removal surgery.\n')
+    else:
+        print('Health check failed! Aborting.\n')
+        return None, None, None
+    
+    # Find teams in name list and remove them
+    new_names = [name for name in pid_dict.keys() if not name[:4]==u'Team']
+    num_removed = len(pid_dict.keys())-len(new_names)
+    if num_removed == 0:
+        print('No teams found! Aborting.')
+        return matches, pid_dict, pname_dict
+    else:
+        print('{:d} teams found and removed:'.format(num_removed))
+        print([name for name in pid_dict.keys() if name[:4]==u'Team'])
+
+    
+    # Build new dictionaries from new name list
+    new_pid_dict, new_pname_dict = build_new_dicts(new_names)
+
+    # Translate matches to new dictionaries
+    new_matches = translate_matches_to_new_dict(matches, pname_dict, new_pid_dict)
+
+    # Removing teams means removing matches they played. If a valid player only played against teams, they will
+    # be absent from the new match list. If so, reindex the dictionaries and matches.
+    concise, concise_name_list = check_dictionary_conciseness(new_matches, new_pname_dict, return_concise_names=True)
+    if not concise:
+        print('Orphaned names found as result of team match skipping, repairing...')
+        concise_pid_dict, concise_pname_dict = build_new_dicts(concise_name_list)
+        concise_matches = translate_matches_to_new_dict(new_matches, new_pname_dict, concise_pid_dict)
+        # Push final results onto expected variable names
+        new_pid_dict = concise_pid_dict
+        new_pname_dict = concise_pname_dict
+        new_matches = concise_matches
+    
+    print('')
+    if do_checkup(new_matches, new_pid_dict, new_pname_dict):
+        print('Health check passed for new matches and dictionaries.\n')
+        return new_matches, new_pid_dict, new_pname_dict
+    else:
+        print('Health check failed for new matches and dictionaries! Aborting.\n')
+        return None, None, None
+
+
 
