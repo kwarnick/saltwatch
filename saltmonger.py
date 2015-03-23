@@ -67,6 +67,9 @@ def place_random_bet(wager=1):
 
 
 def act_on_processed_state(mode, status, match):
-    if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
-        if status == sp.OPEN:
-            place_random_bet()
+    #if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
+    #    if status == sp.OPEN:
+    #        place_random_bet()
+
+    if status == sp.OPEN:
+        place_random_bet()

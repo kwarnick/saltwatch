@@ -18,12 +18,14 @@ def load_persistent_data():
 
     if os.path.isfile(PLAYERS_FILENAME):
         player_id_dict, player_name_dict = pickle.load(open(PLAYERS_FILENAME, 'rb'))
+        print('{:d} characters loaded'.format(len(player_id_dict)))
     else:
         print('File {} not found, starting new player dictionaries'.format(PLAYERS_FILENAME))
         player_id_dict, player_name_dict = {}, {}
 
     if os.path.isfile(MATCHES_FILENAME):
         matches = pickle.load(open(MATCHES_FILENAME, 'rb'))
+        print('{:d} match results loaded'.format(len(matches)))
     else:
         print('File {} not found, starting new match history'.format(MATCHES_FILENAME))
         matches = []
@@ -32,11 +34,13 @@ def load_persistent_data():
 def save_persistent_data():
     if player_id_dict and player_name_dict:
         pickle.dump([player_id_dict, player_name_dict], open(PLAYERS_FILENAME, 'wb'))
+        print('{:d} characters saved'.format(len(player_id_dict)))
     else:
         pickle.dump([{}, {}], open(PLAYERS_FILENAME, 'wb'))
 
     if matches:
         pickle.dump(matches, open(MATCHES_FILENAME, 'wb'))
+        print('{:d} matches saved'.format(len(matches)))
     else:
         pickle.dump([], open(MATCHES_FILENAME, 'wb'))
 
