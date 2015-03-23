@@ -28,7 +28,7 @@ def calc_neighborhood_lists(matches, pid_list):
     return neighborhood_lists
         
 
-def calc_neighborhood_averages_and_sizes(neighborhood_list, ranks, weights)
+def calc_neighborhood_averages_and_sizes(neighborhood_list, ranks, weights):
     neighborhood_ranks = []
     for neighborhood in neighborhood_list:
         neighborhood_ranks.append(ranks[neighborhood])
@@ -49,7 +49,7 @@ def calc_neighborhood_averages_and_sizes(neighborhood_list, ranks, weights)
     return neighborhood_averages, neighborhood_sizes
 
 
-def get_input_data()
+def get_input_data():
     matches = np.array(ss.matches)
     pid_list = np.array(ss.player_name_dict.keys(), dtype=int)
     ranks = np.zeros(ss.player_id_dict, dtype=float)
