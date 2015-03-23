@@ -1,5 +1,5 @@
 import websocket
-from time import time
+from time import time, sleep
 import sys
 try:
     import httplib
@@ -53,7 +53,7 @@ def on_close(ws):
 
     # Retry connection after cooldown period
     print('Waiting {:d}s to reconnect'.format(CONNECTION_RETRY_COOLDOWN))
-    time.sleep(CONNECTION_RETRY_COOLDOWN)  
+    sleep(CONNECTION_RETRY_COOLDOWN)  
     # Attempt reconnect
     websocket.enableTrace(True)
     ws = connect('www-cdn-twitch.saltybet.com', 8000)

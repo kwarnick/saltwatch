@@ -9,8 +9,10 @@ import saltprocessing as sp
 
 PLAYERS_FILENAME = 'players.p'
 MATCHES_FILENAME = 'matches.p'
+RANKS_FILENAME = 'ranks.p'
 player_id_dict, player_name_dict = {}, {}
 matches = []
+ranks = []
 
 def load_persistent_data():
     global player_id_dict, player_name_dict
@@ -44,6 +46,19 @@ def save_persistent_data():
     else:
         pickle.dump([], open(MATCHES_FILENAME, 'wb'))
 
+
+def save_model(ranks):
+    pickle.dump(ranks, open(RANKS_FILENAME, 'wb'))
+
+def load_model():
+    global ranks
+    if os.path.isfile(RANKS_FILENAME):
+        ranks = pickle.load(open(RANKS_FILENAME, 'rb'))
+        print('{:d} ranks loaded'.format(len(ranks)))
+    else:
+        print('File {} not found'.format(RANKS_FILENAME))
+        ranks = []
+    
 
 def save_match(match):
     global matches 
