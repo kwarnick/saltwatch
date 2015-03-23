@@ -14,30 +14,31 @@ def calc_weights(t, tmin, tmax):
     return np.power((1+t-tmin)/(1+tmax-tmin), 2)
   
 
-def calc_neighborhood_lists(matches, pid_list):
-    neighborhood_lists = []
+def calc_neighborhoods(matches, weights, pid_list):
+    neighborhood_ids = []
+    neighborhood_weights = []
     for pid in pid_list:
-        neighborhood = []
-        for match in matches:
+        this_ids = []
+        this_weights = []
+        for match, weight in zip(matches, weights):
             if match[0]==pid:
-                neighborhood.append(match[1])
+                this_ids.append(match[1])
+                this_weights.append(weight)
             elif match[1]==pid:
-                neighborhood.append(match[0])
-        neighborhood_lists.append(neighborhood)
+                this_ids.append(match[0])
+                this_weights.append(weight)
+        neighborhood_ids.append(this_ids)
+        neighborhood_weights.append(this_weights)
 
-    return neighborhood_lists
+    return neighborhood_ids, neighborhood_weights
         
 
-def calc_neighborhood_averages_and_sizes(neighborhood_list, ranks, weights):
+def calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights, ranks):
     neighborhood_ranks = []
-    for neighborhood in neighborhood_list:
+    for neighborhood in neighborhood_ids:
         neighborhood_ranks.append(ranks[neighborhood])
         
-    neighborhood_weights = []
-    for neighborhood in neighborhood_list:
-        neighborhood_weights.append(weights[neighborhood])
-
-    do_sum = np.vectorize(do_sum)
+    do_sum = np.vectorize(np.sum)
     neighborhood_total_weights = do_sum(neighborhood_weights)
 
     do_dot = np.vectorize(np.dot)
@@ -51,18 +52,17 @@ def calc_neighborhood_averages_and_sizes(neighborhood_list, ranks, weights):
 
 def get_input_data():
     matches = np.array(ss.matches)
-    pid_list = np.array(ss.player_name_dict.keys(), dtype=int)
-    ranks = np.zeros(ss.player_id_dict, dtype=float)
+    pid_list = np.array(list(ss.player_name_dict.keys()), dtype=int)
+    ranks = np.zeros(len(ss.player_id_dict), dtype=float)
     return matches, ranks, pid_list
 
 
 def train_model(matches, ranks, pid_list, neighbor_regularization=0.77):
     weights = calc_weights(matches[:,5], np.min(matches[:,5]), np.max(matches[:,5]))
-    matches, ranks, pid_list = get_input_data()
-    neighborhood_lists = calc_neighborhood_lists(matches, pid_list)
-    neighborhood_averages, neighborhood_sizes = calc_neighborhood_averages_and_size(neighborhood_list, ranks)
+    neighborhood_ids, neighborhood_weights = calc_neighborhoods(matches, weights, pid_list)
+    neighborhood_averages, neighborhood_sizes = calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights, ranks)
 
-    MAX_ITER = 50
+    MAX_ITER = 100
     for i in range(MAX_ITER):
         print('Iteration {:d}'.format(i))
         learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
@@ -75,21 +75,25 @@ def train_model(matches, ranks, pid_list, neighbor_regularization=0.77):
             ranks[match[0]] -= learning_rate *  (pred_factor + neighbor_regularization/neighborhood_sizes[match[0]]*(ranks[match[0]]-neighborhood_averages[match[0]]))
             ranks[match[1]] -= learning_rate * (-pred_factor + neighbor_regularization/neighborhood_sizes[match[1]]*(ranks[match[1]]-neighborhood_averages[match[1]]))
 
+        in_sample_predictions = predict_outcomes(ranks[matches[:,0]], ranks[matches[:,1]])
+        test_gross_error = np.sum(np.abs(in_sample_predictions - matches[:,2]))
+        print('Gross error: {:.2f} over {:d} matches, {:.2f} average'.format(test_gross_error, len(matches), test_gross_error/len(matches)))
     return ranks
 
 
 if __name__ == "__main__":
+    ss.load_persistent_data()
     matches, ranks, pid_list = get_input_data()
-    NUM_TEST_MATCHES = 100
-    train_matches = matches[:-NUM_TEST_MATCHES]
-    test_matches = matches[NUM_TEST_MATCHES+1:]
+    NUM_TEST_MATCHES = 200
+    train_matches = np.array(matches[:-NUM_TEST_MATCHES])
+    test_matches = np.array(matches[-NUM_TEST_MATCHES:])
     new_ranks = train_model(train_matches, ranks, pid_list)
 
-    test_predictions = predict_outcomes(new_ranks[test_matches[:,0], new_ranks[test_matches[:,1]])
+    test_predictions = predict_outcomes(new_ranks[test_matches[:,0]], new_ranks[test_matches[:,1]])
     test_outcomes = test_matches[:,2]
     test_gross_error = np.sum(np.abs(test_predictions - test_outcomes))
     test_numcorrect = np.sum((test_predictions>0.5) == test_outcomes)
-    print('Gross error: {} over {} test matches, {:.2f}%'.format(test_gross_error, NUM_TEST_MATCHES, test_gross_error/NUM_TEST_MATCHES*100))
-    print('Prediction error: {} correct over {} test matches, {:.2f}%'.format(test_numcorrect, NUM_TEST_MATCHES), float(test_numcorrect)/NUM_TEST_MATCHES*100)
+    print('Gross error: {:.2f} over {:d} test matches, {:.2f} average'.format(test_gross_error, NUM_TEST_MATCHES, test_gross_error/NUM_TEST_MATCHES))
+    print('Prediction error: {} correct over {} test matches, {:.2f}%'.format(test_numcorrect, NUM_TEST_MATCHES, float(test_numcorrect)/NUM_TEST_MATCHES*100))
 
     ss.save_model(ranks)

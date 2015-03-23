@@ -49,7 +49,7 @@ def place_bet(player, wager):
     # Example bet payload: {'selectedplayer': 'player2', 'wager': 100}
     r = s.post(BET_URL, data={'selectedplayer': 'player'+str(player+1), 'wager': wager})
         
-    if r.content=='1':
+    if len(r.content) > 0:
         print('Bet {:d} on player {:d}'.format(wager, player+1))
         return True
     print('Bet placement failed')
