@@ -73,7 +73,7 @@ def place_saltmind_bet(match, wager=1):
     if pred==0.5:
         place_random_bet(1)
     else:
-        player = round(pred)
+        player = int(round(pred))
         place_bet(player, wager)
 
 
