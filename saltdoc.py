@@ -43,8 +43,9 @@ def build_new_dicts(names):
     return pid_dict, pname_dict
 
 
-def translate_matches_to_new_dict(matches, old_pname_dict, new_pid_dict):
-    print('Processing {:d} matches'.format(len(matches)))
+def translate_matches_to_new_dict(matches, old_pname_dict, new_pid_dict, verbose=True):
+    if verbose:
+        print('Processing {:d} matches'.format(len(matches)))
     
     new_matches = []
     for match in matches:
@@ -57,8 +58,9 @@ def translate_matches_to_new_dict(matches, old_pname_dict, new_pid_dict):
             try:
                 new_id = new_pid_dict[name]         # Translate to new ID
             except KeyError:
-                print('{} not found in new player name list, match skipped: '.format(name))
-                print(match)
+                if verbose:
+                    print('{} not found in new player name list, match skipped: '.format(name))
+                    print(match)
                 valid_entry = False
                 break   
             new_match[i] = new_id
@@ -66,7 +68,8 @@ def translate_matches_to_new_dict(matches, old_pname_dict, new_pid_dict):
         if valid_entry:
             new_matches.append(new_match)
 
-    print('{:d} matches translated, {:d} skipped'.format(len(new_matches), len(matches)-len(matches)))
+    if verbose:
+        print('{:d} matches translated, {:d} skipped'.format(len(new_matches), len(matches)-len(matches)))
 
     return new_matches
 
@@ -86,15 +89,17 @@ def check_matches_translatability(matches, pname_dict):
     return translatable
 
 
-def check_dictionary_conciseness(matches, pname_dict, return_concise_names=False):
-    print('Checking if all {:d} player IDs appear in at least one match'.format(len(pname_dict)))
+def check_dictionary_conciseness(matches, pname_dict, return_concise_names=False, verbose=True):
+    if verbose:
+        print('Checking if all {:d} player IDs appear in at least one match'.format(len(pname_dict)))
 
     concise = True
     concise_names_list = []
     for pid in pname_dict.keys():
         num_appearances = np.sum(np.logical_or(np.array(matches)[:][:,0]==pid, np.array(matches)[:][:,1]==pid))
         if num_appearances == 0:
-            print('{} does not appear in any match'.format(pname_dict[pid]))
+            if verbose:
+                print('{} does not appear in any match'.format(pname_dict[pid]))
             concise = False
         else:
             concise_names_list.append(pname_dict[pid])
