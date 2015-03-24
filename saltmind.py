@@ -11,7 +11,7 @@ def predict_outcomes(rank1, rank2):
 
 
 def calc_weights(t, tmin, tmax):
-    return np.power((1+t-tmin)/(1+tmax-tmin), 2)
+    return np.power((1+t-tmin)/(1+tmax-tmin), 2.)
   
 
 def calc_neighborhoods(matches, weights, pid_list):
@@ -29,7 +29,6 @@ def calc_neighborhoods(matches, weights, pid_list):
                 this_weights.append(weight)
         neighborhood_ids.append(this_ids)
         neighborhood_weights.append(this_weights)
-
     return neighborhood_ids, neighborhood_weights
         
 
@@ -41,6 +40,7 @@ def calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights,
     do_sum = np.vectorize(np.sum)
     neighborhood_total_weights = do_sum(neighborhood_weights)
 
+    print(np.max(neighborhood_total_weights), np.min(neighborhood_total_weights))
     do_dot = np.vectorize(np.dot)
     neighborhood_averages = do_dot(neighborhood_ranks, neighborhood_weights) / neighborhood_total_weights
     
@@ -53,18 +53,19 @@ def calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights,
 def get_input_data():
     matches = np.array(ss.matches)
     pid_list = np.array(list(ss.player_name_dict.keys()), dtype=int)
-    ranks = np.zeros(len(ss.player_id_dict), dtype=float)
+    ranks = np.ones(len(ss.player_id_dict), dtype=float)
     return matches, ranks, pid_list
 
 
 def train_model(matches, ranks, pid_list, neighbor_regularization=0.77):
-    weights = calc_weights(matches[:,5], np.min(matches[:,5]), np.max(matches[:,5]))
+    weights = calc_weights(matches[:,5].astype(float), np.min(matches[:,5]), np.max(matches[:,5]))
+    print('weights', len(weights), np.max(weights), np.min(weights)
     neighborhood_ids, neighborhood_weights = calc_neighborhoods(matches, weights, pid_list)
-    neighborhood_averages, neighborhood_sizes = calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights, ranks)
-
-    MAX_ITER = 100
+    
+    MAX_ITER = 50
     for i in range(MAX_ITER):
         print('Iteration {:d}'.format(i))
+        neighborhood_averages, neighborhood_sizes = calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights, ranks)
         learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
         # Randomize the order in which the matches will be processed this iteration
         indices = np.random.permutation(len(matches))
@@ -91,6 +92,7 @@ if __name__ == "__main__":
 
     test_predictions = predict_outcomes(new_ranks[test_matches[:,0]], new_ranks[test_matches[:,1]])
     test_outcomes = test_matches[:,2]
+    print(np.shape(test_outcomes), np.shape(test_predictions))
     test_gross_error = np.sum(np.abs(test_predictions - test_outcomes))
     test_numcorrect = np.sum((test_predictions>0.5) == test_outcomes)
     print('Gross error: {:.2f} over {:d} test matches, {:.2f} average'.format(test_gross_error, NUM_TEST_MATCHES, test_gross_error/NUM_TEST_MATCHES))

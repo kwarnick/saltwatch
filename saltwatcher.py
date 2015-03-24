@@ -51,13 +51,19 @@ def on_close(ws):
     ss.save_persistent_data()
     print("### closed ###")
 
-    # Retry connection after cooldown period
-    print('Waiting {:d}s to reconnect'.format(CONNECTION_RETRY_COOLDOWN))
-    sleep(CONNECTION_RETRY_COOLDOWN)  
-    # Attempt reconnect
-    websocket.enableTrace(True)
-    ws = connect('www-cdn-twitch.saltybet.com', 8000)
-    ws.run_forever()
+    while True:
+        # Retry connection after cooldown period
+        print('Waiting {:d}s to reconnect'.format(CONNECTION_RETRY_COOLDOWN))
+        # Attempt reconnect
+        sleep(CONNECTION_RETRY_COOLDOWN)  
+        try:
+            websocket.enableTrace(True)
+            ws = connect('www-cdn-twitch.saltybet.com', 8000)
+            ws.run_forever()
+        except: 
+            continue
+        break
+
 
 
 def on_open(ws):

@@ -66,21 +66,24 @@ def save_match(match):
 
 
 def get_player_id_by_name(pname):
-    global player_name_dict
-    global player_id_dict
-
-    # Keep dictionaries updated if name is new
     if pname not in player_id_dict:
-        if player_id_dict:
-            new_id = max(player_id_dict.values())+1
-            player_id_dict[pname] = new_id
-            player_name_dict[new_id] = pname
-        else:
-            player_id_dict[pname] = 0
-            player_name_dict[0] = pname
-
+        return -1
     return player_id_dict[pname]
 
+
+def assign_new_player_id(pname):
+    global player_id_dict
+    global player_name_dict
+
+    if player_id_dict:
+        new_id = max(player_id_dict.values())+1
+    else:
+        new_id = 0
+    player_id_dict[pname] = new_id
+    player_name_dict[new_id] = pname
+
+    return new_id
+    
 
 def act_on_processed_state(mode, status, match):
 
