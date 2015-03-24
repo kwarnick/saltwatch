@@ -7,7 +7,7 @@ except ImportError:
     import http.client as httplib 
 import saltprocessing as sp
 import saltstorage as ss
-import saltmonger as sm
+import saltbettor as sb
 
 
 # Global variables/params for timed behaviors
@@ -38,9 +38,9 @@ def on_message(ws, message):
             print(state)
             mode, status, match = sp.process_state(state)  
 
-            # Explicitly have saltstorage and saltmonger react to the update
+            # Explicitly have saltstorage and saltbettor react to the update
             ss.act_on_processed_state(mode, status, match)
-            sm.act_on_processed_state(mode, status, match)
+            sb.act_on_processed_state(mode, status, match)
 
 
 def on_error(ws, error):
@@ -89,7 +89,7 @@ def connect(server, port):
 
 if __name__ == "__main__":
     ss.load_persistent_data()
-    sm.login()
+    sb.login()
 
     websocket.enableTrace(True)
     ws = connect('www-cdn-twitch.saltybet.com', 8000)
