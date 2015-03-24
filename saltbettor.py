@@ -81,6 +81,6 @@ def act_on_processed_state(mode, status, match):
     if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
         if status == sp.OPEN:
             place_saltmind_bet(match, wager=10)
-    elif mode == sp.EXHIBITION
+    elif mode == sp.EXHIBITION:
         if status == sp.OPEN:
             place_random_bet()
