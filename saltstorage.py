@@ -47,8 +47,11 @@ def save_persistent_data():
         pickle.dump([], open(MATCHES_FILENAME, 'wb'))
 
 
-def save_model(ranks):
+def save_model(new_ranks):
+    global ranks
+    ranks = new_ranks
     pickle.dump(ranks, open(RANKS_FILENAME, 'wb'))
+
 
 def load_model():
     global ranks
@@ -86,7 +89,6 @@ def assign_new_player_id(pname):
     
 
 def act_on_processed_state(mode, status, match):
-
     if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
         if status == sp.RESULTS:
             save_match(match)

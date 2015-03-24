@@ -6,6 +6,7 @@ import saltstorage as ss
 import saltdoc as sd
 from sklearn.cross_validation import train_test_split
 
+
 def predict_outcomes(ranks, pid1, pid2):
     # 0 means p1 wins, 1 means p2 wins
     if len(pid1)==1:
@@ -70,15 +71,15 @@ def calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights,
 def train_model(matches, validation_matches, pid_dict, pname_dict, initial_ranks, neighbor_regularization=0.77):
     # Per-match attributes
     weights = calc_weights(matches[:,5].astype(float), np.min(matches[:,5]), np.max(matches[:,5]))
-    print('{} weights from {} matches spanning {} - {}'.format(len(weights), len(matches[:,5]), min(weights), max(weights)))
+    #print('{} weights from {} matches spanning {} - {}'.format(len(weights), len(matches[:,5]), min(weights), max(weights)))
     
     # Per-player attributes
     pid_list, lookup, ranks = prepare_inputs(matches, pid_dict, pname_dict, initial_ranks)
-    print('{:d} players found in matches'.format(len(pid_list)))
-    print('Player IDs span {:d} - {:d}'.format(min(pid_list), max(pid_list)))
+    print('{:d} players found in {:d} matches'.format(len(pid_list), len(matches)))
+    #print('Player IDs span {:d} - {:d}'.format(min(pid_list), max(pid_list)))
     
     neighborhood_ids, neighborhood_weights = calc_neighborhoods(matches, weights, pid_list)
-    print('{:d} neighborhood listings and {:d} neighborhood weights calculated'.format(len(neighborhood_ids), len(neighborhood_weights)))
+    #print('{:d} neighborhood listings and {:d} neighborhood weights calculated'.format(len(neighborhood_ids), len(neighborhood_weights)))
    
     print('Initial scores: ')
     pred = predict_outcomes(ranks, matches[:,0], matches[:,1])
@@ -90,6 +91,7 @@ def train_model(matches, validation_matches, pid_dict, pname_dict, initial_ranks
     v_numcorrect = score_numcorrect(v_pred, validation_matches[:,2])
     v_avg_error = score_avg_error(v_pred, validation_matches[:,2])
     print('{:d}/{:d} = {:.2f}% correct out-of-sample, average gross error {:.2f}'.format(v_numcorrect, len(validation_matches), float(v_numcorrect)/len(validation_matches)*100, v_avg_error))
+    print('')
 
     MAX_ITER = 50
     for i in range(MAX_ITER):
@@ -116,6 +118,7 @@ def train_model(matches, validation_matches, pid_dict, pname_dict, initial_ranks
         v_avg_error = score_avg_error(v_pred, validation_matches[:,2])
         v_median_error = score_median_error(v_pred, validation_matches[:,2])
         print('{:d}/{:d} = {:.2f}% correct out-of-sample, avg/median gross error {:.3f}/{:3f}'.format(v_numcorrect, len(validation_matches), float(v_numcorrect)/len(validation_matches)*100, v_avg_error, v_median_error))
+        print('')
     return ranks
 
 

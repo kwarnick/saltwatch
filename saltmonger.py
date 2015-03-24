@@ -5,7 +5,8 @@ Relies on saltmind for outcome prediction and bet recommendations.
 import requests
 import random
 import saltprocessing as sp
-
+import saltstorage as ss
+import saltmind as sm
 
 LOGIN_URL = 'http://www.saltybet.com/authenticate?signin=1'
 LOGIN_PAYLOAD = {'email': 'giant_snark@myway.com',
@@ -29,6 +30,7 @@ HEADERS = {'Host': 'www.saltybet.com',
 
 
 s = requests.Session()
+
 
 def login(): 
     global s
@@ -66,10 +68,19 @@ def place_random_bet(wager=1):
     return place_bet(player, wager)
 
 
-def act_on_processed_state(mode, status, match):
-    #if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
-    #    if status == sp.OPEN:
-    #        place_random_bet()
+def place_saltmind_bet(match, wager=1):
+    pred = sm.predict_one_outcome(ss.ranks, match[0], match[1])
+    if pred==0.5:
+        place_random_bet(1)
+    else:
+        player = round(pred)
+        place_bet(player, wager)
 
-    if status == sp.OPEN:
-        place_random_bet()
+
+def act_on_processed_state(mode, status, match):
+    if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
+        if status == sp.OPEN:
+            place_saltmind_bet(match, wager=10)
+
+    #if status == sp.OPEN:
+    #    place_random_bet()
