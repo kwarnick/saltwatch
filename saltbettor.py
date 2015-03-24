@@ -54,7 +54,7 @@ def place_bet(player, wager):
     if len(r.content) > 0:
         print('Bet {:d} on player {:d}'.format(wager, player+1))
         return True
-    print('Bet placement failed')
+    print('Bet placement failed: {:d} on player {:d}'.format(wager, player+1))
     return False
 
 
