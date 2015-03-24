@@ -12,11 +12,13 @@ MATCHES_FILENAME = 'matches.p'
 RANKS_FILENAME = 'ranks.p'
 player_id_dict, player_name_dict = {}, {}
 matches = []
-ranks = []
+ranks = {}
+
 
 def load_persistent_data():
     global player_id_dict, player_name_dict
     global matches
+    global ranks
 
     if os.path.isfile(PLAYERS_FILENAME):
         player_id_dict, player_name_dict = pickle.load(open(PLAYERS_FILENAME, 'rb'))
@@ -31,6 +33,13 @@ def load_persistent_data():
     else:
         print('File {} not found, starting new match history'.format(MATCHES_FILENAME))
         matches = []
+
+    if os.path.isfile(RANKS_FILENAME):
+        ranks = pickle.load(open(RANKS_FILENAME, 'rb'))
+        print('{:d} ranks loaded'.format(len(ranks)))
+    else:
+        print('FIle {} not found, no ranks loaded'.format(RANKS_FILENAME))
+        ranks = {}
 
 
 def save_persistent_data():
