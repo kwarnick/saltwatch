@@ -142,12 +142,29 @@ def combine_dictionaries(pname_dict1, pname_dict2):
     return pid_dict, pname_dict
 
 
+def do_surgery_remove_extra_names(matches, pid_dict, pname_dict):
+    concise, concise_name_list = check_dictionary_conciseness(matches, pname_dict, return_concise_names=True)
+    if not concise:
+        print('Orphaned names found, removing...')
+        concise_pid_dict, concise_pname_dict = build_new_dicts(concise_name_list)
+        concise_matches = translate_matches_to_new_dict(matches, pname_dict, concise_pid_dict)
+        if not check_dictionary_conciseness(concise_matches, concise_pname_dict):
+            print('Repair failed, aborting.')
+            return matches, pid_dict, pname_dict
+        else:
+            print('Repair succeeded.')
+            return concise_matches, concise_pid_dict, concise_pname_dict
+    else:
+        print('Name list is already concise, aborting.')
+        return matches, pid_dict, pname_dict
+
+
 def do_surgery_remove_teams(matches, pid_dict, pname_dict):
     if (do_checkup(matches, pid_dict, pname_dict)):
         print('Health check passed. Proceeding with team removal surgery.\n')
     else:
         print('Health check failed! Aborting.\n')
-        return None, None, None
+        return mathces, pid_dict, pname_dict
     
     # Find teams in name list and remove them
     new_names = [name for name in pid_dict.keys() if not name[:4]==u'Team']
@@ -159,7 +176,6 @@ def do_surgery_remove_teams(matches, pid_dict, pname_dict):
         print('{:d} teams found and removed:'.format(num_removed))
         print([name for name in pid_dict.keys() if name[:4]==u'Team'])
 
-    
     # Build new dictionaries from new name list
     new_pid_dict, new_pname_dict = build_new_dicts(new_names)
 
@@ -168,15 +184,9 @@ def do_surgery_remove_teams(matches, pid_dict, pname_dict):
 
     # Removing teams means removing matches they played. If a valid player only played against teams, they will
     # be absent from the new match list. If so, reindex the dictionaries and matches.
-    concise, concise_name_list = check_dictionary_conciseness(new_matches, new_pname_dict, return_concise_names=True)
-    if not concise:
-        print('Orphaned names found as result of team match skipping, repairing...')
-        concise_pid_dict, concise_pname_dict = build_new_dicts(concise_name_list)
-        concise_matches = translate_matches_to_new_dict(new_matches, new_pname_dict, concise_pid_dict)
-        # Push final results onto expected variable names
-        new_pid_dict = concise_pid_dict
-        new_pname_dict = concise_pname_dict
-        new_matches = concise_matches
+    if not check_dictionary_conciseness(new_matches, new_pname_dict):
+        print('Orphaned names found as result of team match skipping, removing...')
+        new_matches, new_pid_dict, new_name_dict = do_surgery_remove_extra_names(new_matches, new_pid_dict, new_pname_dict) 
     
     print('')
     if do_checkup(new_matches, new_pid_dict, new_pname_dict):
@@ -184,7 +194,7 @@ def do_surgery_remove_teams(matches, pid_dict, pname_dict):
         return new_matches, new_pid_dict, new_pname_dict
     else:
         print('Health check failed for new matches and dictionaries! Aborting.\n')
-        return None, None, None
+        return matches, pid_dict, pname_dict
 
 
 

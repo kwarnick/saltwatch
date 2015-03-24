@@ -42,7 +42,7 @@ def save_persistent_data():
 
     if matches:
         pickle.dump(matches, open(MATCHES_FILENAME, 'wb'))
-        print('{:d} matche results saved'.format(len(matches)))
+        print('{:d} match results saved'.format(len(matches)))
     else:
         pickle.dump([], open(MATCHES_FILENAME, 'wb'))
 
