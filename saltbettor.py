@@ -79,9 +79,9 @@ def place_saltmind_bet(match, wager=1):
 
 def display_player_statistics(pid):
     try:
-        print('{:5}: Times seen: {:3} Rank: {:.3f}'.format(pid, ss.times_seen[pid], ss.ranks[pid]))
+        print('{:4}:  Times seen: {:2}  Rank: {:.3f}'.format(pid, ss.times_seen[pid], ss.ranks[pid]))
     except KeyError:
-        print('{:5}: Times seen: {:3} Rank: None'.format(pid, 0))
+        print('{:4}:  Times seen: {:2}  Rank: None'.format(pid, 0))
 
 
 def act_on_processed_state(mode, status, match):
