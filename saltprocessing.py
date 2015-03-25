@@ -140,7 +140,7 @@ def process_state(state):
     # IDs are -1 if not seen before
     p1_id = ss.get_player_id_by_name(state['p1name'])  # ID for P1
     p2_id = ss.get_player_id_by_name(state['p2name'])  # ID for P2
-    if status == RESULTS:
+    if status == RESULTS and (mode == MATCHMAKING or mode == TOURNAMENT):
         if p1_id == -1:
             p1_id = ss.assign_new_player_id(state['p1name'])
         if p2_id == -1:

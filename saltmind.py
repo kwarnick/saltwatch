@@ -178,14 +178,14 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.3
+        neighbor_regularization = 0.05
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
     # Test a given set of model hyperparameters, separating validation and test sets from the training set
-    new_ranks, times_seen = test_one_model_training(matches, ss.player_id_dict, ss.player_name_dict, {}, 200, 200, neighbor_regularization=neighbor_regularization)
-    print('')
+    #new_ranks, times_seen = test_one_model_training(matches, ss.player_id_dict, ss.player_name_dict, {}, 200, 200, neighbor_regularization=neighbor_regularization)
+    #print('')
 
     # Get final model using the chosen hyperparameters across all available data
-    #new_ranks, times_seen = train_model(matches, ss.player_id_dict, ss.player_name_dict, {}, [], neighbor_regularization=neighbor_regularization)
-    #ss.save_model(new_ranks, times_seen)
+    new_ranks, times_seen = train_model(matches, ss.player_id_dict, ss.player_name_dict, {}, [], neighbor_regularization=neighbor_regularization)
+    ss.save_model(new_ranks, times_seen)
