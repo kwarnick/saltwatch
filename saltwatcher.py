@@ -19,6 +19,7 @@ last_state_check = 0 # Start with no cooldown
 last_data_write = 0
 last_model_load = 0
 
+
 def on_message(ws, message):
     print(message)
     global last_state_check, last_data_write, last_model_load
@@ -95,6 +96,7 @@ def connect(server, port):
 
 if __name__ == "__main__":
     ss.load_persistent_data()
+    ss.load_model()
     sb.login()
 
     websocket.enableTrace(True)

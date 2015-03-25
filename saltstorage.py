@@ -35,13 +35,6 @@ def load_persistent_data():
         print('File {} not found, starting new match history'.format(MATCHES_FILENAME))
         matches = []
 
-    if os.path.isfile(RANKS_FILENAME):
-        ranks, times_seen = pickle.load(open(RANKS_FILENAME, 'rb'))
-        print('{:d} ranks loaded'.format(len(ranks)))
-    else:
-        print('FIle {} not found, no ranks loaded'.format(RANKS_FILENAME))
-        ranks = {}
-
 
 def save_persistent_data():
     if player_id_dict and player_name_dict:
