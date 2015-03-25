@@ -85,7 +85,7 @@ def identify_mode(state, status):
         # u'100 more matches until the next tournament!' (Last match results have message about the first matchmaking match)
         elif ((u'exhibition matches left!' in state['remaining'] and state['remaining'][:2] != u'25') or 
           state['remaining'] == u'Matchmaking mode will be activated after the next exhibition match!' or
-          state['remainining'] ==  u'100 more matches until the next tournament!'):
+          state['remainining'] == u'100 more matches until the next tournament!'):
             mode = EXHIBITION
         
         else:

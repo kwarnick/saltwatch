@@ -13,19 +13,25 @@ import saltbettor as sb
 # Global variables/params for timed behaviors
 STATE_CHECK_COOLDOWN = 2.    # Don't get state twice in a cooldown period - prevent duplicates
 DATA_WRITE_PERIOD = 1*60*60  # Save data to disk every hour
+MODEL_RELOAD_PERIOD = 6*60*60   # Reload the model from disk every six hours
 CONNECTION_RETRY_COOLDOWN = 30  # If connection fails, try to reconnect after a cooldown
-last_state_check = time()-STATE_CHECK_COOLDOWN # Start with no cooldown
-last_data_write = time()
-
+last_state_check = 0 # Start with no cooldown
+last_data_write = 0
+last_model_load = 0
 
 def on_message(ws, message):
     print(message)
-    global last_state_check, last_data_write
+    global last_state_check, last_data_write, last_model_load
     
     # Check if we're due to save data to disk
     if time() - last_data_write > DATA_WRITE_PERIOD:
         ss.save_persistent_data()
         last_data_write = time()
+
+    # Check if we're due to reload the model
+    if time() - last_model_load > MODEL_RELOAD_PERIOD:
+        ss.load_model()
+        last_model_load = time()
     
     # Echo keepalive message
     if message == u'2::':

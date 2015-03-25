@@ -1,6 +1,7 @@
 """ Implements all the modeling and prediction. This is needed for intelligent betting.
 """
 
+import sys
 import numpy as np
 import saltstorage as ss
 import saltdoc as sd
@@ -155,6 +156,9 @@ def prepare_inputs(matches, pid_dict, pname_dict, initial_ranks):
 
 
 if __name__ == "__main__":
+    if len(sys.argv)>1:
+        neighbor_regularization = float(sys.argv[1])
+
     ss.load_persistent_data()
     matches = np.array(ss.matches)
     NUM_TEST_MATCHES = 200
@@ -162,7 +166,7 @@ if __name__ == "__main__":
     train_matches, validation_matches = train_test_split(matches[:-NUM_TEST_MATCHES], test_size=NUM_VALIDATION_MATCHES)
     test_matches = matches[-NUM_TEST_MATCHES:]
 
-    new_ranks = train_model(train_matches, validation_matches, ss.player_id_dict, ss.player_name_dict, {}, neighbor_regularization=0.05)
+    new_ranks = train_model(train_matches, validation_matches, ss.player_id_dict, ss.player_name_dict, {}, neighbor_regularization=neighbor_regularization)
 
     test_pred = predict_outcomes(new_ranks, test_matches[:,0], test_matches[:,1])
     test_numcorrect = score_numcorrect(test_pred, test_matches[:,2])
