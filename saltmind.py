@@ -163,7 +163,7 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
         return pct_correct, avg_error, median_error
 
 
-def test_one_model_training(matches, pid_dict, pname_dict, initial_ranks, N_VAL, N_TEST, neighbor_regularization=0.3):
+def test_one_model_training(matches, pid_dict, pname_dict, initial_ranks, N_VAL, N_TEST, neighbor_regularization=0.3, random_state=1334):
     train_matches, validation_matches = train_test_split(matches[:-N_TEST], test_size=N_VAL)
     test_matches = matches[-N_TEST:]
     
@@ -177,13 +177,17 @@ def test_one_model_training(matches, pid_dict, pname_dict, initial_ranks, N_VAL,
 if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
+        if len(sys.argv)>2:
+            random_state = int(sys.argv[2])
+        else:
+            random_state = 1334
     else:
         neighbor_regularization = 0.05
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
     # Test a given set of model hyperparameters, separating validation and test sets from the training set
-    #new_ranks, times_seen = test_one_model_training(matches, ss.player_id_dict, ss.player_name_dict, {}, 200, 200, neighbor_regularization=neighbor_regularization)
+    #new_ranks, times_seen = test_one_model_training(matches, ss.player_id_dict, ss.player_name_dict, {}, 200, 200, neighbor_regularization=neighbor_regularization, random_state=random_state)
     #print('')
 
     # Get final model using the chosen hyperparameters across all available data

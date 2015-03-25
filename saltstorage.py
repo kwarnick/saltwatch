@@ -55,6 +55,7 @@ def save_model(new_ranks, new_times_seen):
     ranks = new_ranks
     times_seen = new_times_seen
     pickle.dump([ranks, times_seen], open(RANKS_FILENAME, 'wb'))
+    print('{:d} ranks saved'.format(len(ranks)))
 
 
 def load_model():
