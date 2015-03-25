@@ -47,80 +47,76 @@ def calc_neighborhoods(matches, weights, pid_list):
     return neighborhood_ids, neighborhood_weights
         
 
-def calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights, ranks):
+def calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights):
+    do_dot = np.vectorize(np.dot)
+    neighborhood_averages = do_dot(neighborhood_ranks, neighborhood_weights) / neighborhood_total_weights
+    return neighborhood_averages
+
+
+def calc_neighborhood_ranks(neighborhood_ids, ranks):
     neighborhood_ranks = []
     for neighborhood in neighborhood_ids:
         neighborhood_ranks.append([ranks[pid] for pid in neighborhood])
-    
-    for neighborhood in neighborhood_weights:
-        if np.sum(neighborhood)==0:
-            print(neighborhood)
+    return neighborhood_ranks
+
+
+def calc_neighborhood_sizes(neighborhood_ids):
+    do_len = np.vectorize(len)
+    neighborhood_sizes = np.array(do_len(neighborhood_ids), dtype=int)
+    return neighborhood_sizes
+
+
+def calc_neighborhood_total_weights(neighborhood_weights):
     do_sum = np.vectorize(np.sum)
     neighborhood_total_weights = do_sum(neighborhood_weights)
-    #print('neighborhood total weights', np.max(neighborhood_total_weights), np.min(neighborhood_total_weights))
-
-    do_dot = np.vectorize(np.dot)
-    neighborhood_averages = do_dot(neighborhood_ranks, neighborhood_weights) / neighborhood_total_weights
-    #print('neighborhood average ranks', np.max(neighborhood_averages), np.min(neighborhood_averages))
-    
-    do_len = np.vectorize(len)
-    neighborhood_sizes = np.array(do_len(neighborhood_ranks), dtype=int)
-
-    return neighborhood_averages, neighborhood_sizes
+    return neighborhood_total_weights
 
 
-def train_model(matches, validation_matches, pid_dict, pname_dict, initial_ranks, neighbor_regularization=0.77):
-    # Per-match attributes
-    weights = calc_weights(matches[:,5].astype(float), np.min(matches[:,5]), np.max(matches[:,5]))
-    #print('{} weights from {} matches spanning {} - {}'.format(len(weights), len(matches[:,5]), min(weights), max(weights)))
-    
+def train_model(matches, pid_dict, pname_dict, initial_ranks, validation_matches=[], neighbor_regularization=0.3, verbose=True):
     # Per-player attributes
     pid_list, lookup, ranks = prepare_inputs(matches, pid_dict, pname_dict, initial_ranks)
-    print('{:d} players found in {:d} matches'.format(len(pid_list), len(matches)))
-    #print('Player IDs span {:d} - {:d}'.format(min(pid_list), max(pid_list)))
+    if verbose:
+        print('{:d} players found in {:d} matches'.format(len(pid_list), len(matches)))
     
+    # Per-match attributes
+    weights = calc_weights(matches[:,5].astype(float), np.min(matches[:,5]), np.max(matches[:,5]))
     neighborhood_ids, neighborhood_weights = calc_neighborhoods(matches, weights, pid_list)
-    #print('{:d} neighborhood listings and {:d} neighborhood weights calculated'.format(len(neighborhood_ids), len(neighborhood_weights)))
-   
-    print('Initial scores: ')
-    pred = predict_outcomes(ranks, matches[:,0], matches[:,1])
-    pred = np.array([0.5]*len(matches))
-    numcorrect = score_numcorrect(pred, matches[:,2])
-    avg_error = score_avg_error(pred, matches[:,2])
-    print('{:d}/{:d} = {:.2f}% correct in-sample, average gross error {:.2f}'.format(numcorrect, len(matches), float(numcorrect)/len(matches)*100, avg_error))
-    v_pred = predict_outcomes(ranks, validation_matches[:,0], validation_matches[:,1])
-    v_numcorrect = score_numcorrect(v_pred, validation_matches[:,2])
-    v_avg_error = score_avg_error(v_pred, validation_matches[:,2])
-    print('{:d}/{:d} = {:.2f}% correct out-of-sample, average gross error {:.2f}'.format(v_numcorrect, len(validation_matches), float(v_numcorrect)/len(validation_matches)*100, v_avg_error))
-    print('')
+    neighborhood_sizes = calc_neighborhood_sizes(neighborhood_ids)
+    neighborhood_total_weights = calc_neighborhood_total_weights(neighborhood_weights)
+
+    if verbose:
+        print('Initial scores: ')
+        score_performance(ranks, matches, 'training')
+        if len(validation_matches):
+            score_performance(ranks, validation_matches, 'validation')
+        print('')
 
     MAX_ITER = 50
     for i in range(MAX_ITER):
         print('Iteration {:d}'.format(i))
-        neighborhood_averages, neighborhood_sizes = calc_neighborhood_averages_and_sizes(neighborhood_ids, neighborhood_weights, ranks)
+        neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
+        neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
         learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
-        #learning_rate = 1.
-        # Randomize the order in which the matches will be processed this iteration
         indices = np.random.permutation(len(matches))
+        
         for weight, match in zip(weights[indices], matches[indices]):
             pred = predict_one_outcome(ranks, match[0], match[1])
-            # Update ranks
             pred_factor = weight*(pred-match[2])*pred*(1-pred)
             ranks[match[0]] += learning_rate *  (pred_factor + neighbor_regularization/neighborhood_sizes[lookup[match[0]]]*(ranks[match[0]]-neighborhood_averages[lookup[match[0]]]))
             ranks[match[1]] += learning_rate * (-pred_factor + neighbor_regularization/neighborhood_sizes[lookup[match[1]]]*(ranks[match[1]]-neighborhood_averages[lookup[match[1]]]))
+       
+        if verbose:
+            score_performance(ranks, matches, 'training')
+            if len(validation_matches):
+                score_performance(ranks, validation_matches, 'validation')
+            print('')
 
-        pred = predict_outcomes(ranks, matches[:,0], matches[:,1])
-        numcorrect = score_numcorrect(pred, matches[:,2])
-        avg_error = score_avg_error(pred, matches[:,2])
-        median_error = score_median_error(pred, matches[:,2])
-        print('{:d}/{:d} = {:.2f}% correct in-sample, avg/median gross error {:.3f}/{:.3f}'.format(numcorrect, len(matches), float(numcorrect)/len(matches)*100, avg_error, median_error))
-        v_pred = predict_outcomes(ranks, validation_matches[:,0], validation_matches[:,1])
-        v_numcorrect = score_numcorrect(v_pred, validation_matches[:,2])
-        v_avg_error = score_avg_error(v_pred, validation_matches[:,2])
-        v_median_error = score_median_error(v_pred, validation_matches[:,2])
-        print('{:d}/{:d} = {:.2f}% correct out-of-sample, avg/median gross error {:.3f}/{:3f}'.format(v_numcorrect, len(validation_matches), float(v_numcorrect)/len(validation_matches)*100, v_avg_error, v_median_error))
-        print('')
-    return ranks
+    # Repackage neighborhood sizes for export
+    times_seen = {}
+    for pid, size in zip(pid_list, neighborhood_sizes):
+        times_seen[pid] = size
+
+    return ranks, times_seen
 
 
 def score_numcorrect(Y_pred, Y):
@@ -139,7 +135,7 @@ def score_median_error(Y_pred, Y):
 
 def prepare_inputs(matches, pid_dict, pname_dict, initial_ranks): 
     # Get a concise list of the player IDs that appear in the provided matches
-    _, concise_names_list = sd.check_dictionary_conciseness(train_matches, pname_dict, return_concise_names=True, verbose=False)
+    _, concise_names_list = sd.check_dictionary_conciseness(matches, pname_dict, return_concise_names=True, verbose=False)
 
     # Create new index lookup list for player IDs
     #new_pid_dict, new_pname_dict = sd.build_new_dicts(concise_names_list)
@@ -155,23 +151,41 @@ def prepare_inputs(matches, pid_dict, pname_dict, initial_ranks):
     return pid_list, lookup, ranks
 
 
+def score_performance(ranks, matches, desc_str, verbose=True, return_values=False):
+    pred = predict_outcomes(ranks, matches[:,0], matches[:,1])
+    numcorrect = score_numcorrect(pred, matches[:,2])
+    pct_correct = float(numcorrect)/len(matches)*100
+    avg_error = score_avg_error(pred, matches[:,2])
+    median_error = score_median_error(pred, matches[:,2])
+    if verbose:
+        print('{:d}/{:d} = {:.2f}% correct in {}, avg/median gross error {:.3f}/{:.3f}'.format(numcorrect, len(matches), pct_correct, desc_str, avg_error, median_error))
+    if return_values:
+        return pct_correct, avg_error, median_error
+
+
+def test_one_model_training(matches, pid_dict, pname_dict, initial_ranks, N_VAL, N_TEST, neighbor_regularization=0.3):
+    train_matches, validation_matches = train_test_split(matches[:-N_TEST], test_size=N_VAL)
+    test_matches = matches[-N_TEST:]
+    
+    new_ranks, times_seen = train_model(train_matches, pid_dict, pname_dict, initial_ranks, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization)
+
+    score_performance(new_ranks, test_matches, 'test')
+
+    return new_ranks, times_seen
+
+
 if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
+    else:
+        neighbor_regularization = 0.3
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
-    NUM_TEST_MATCHES = 200
-    NUM_VALIDATION_MATCHES = 200
-    train_matches, validation_matches = train_test_split(matches[:-NUM_TEST_MATCHES], test_size=NUM_VALIDATION_MATCHES)
-    test_matches = matches[-NUM_TEST_MATCHES:]
+    # Test a given set of model hyperparameters, separating validation and test sets from the training set
+    new_ranks, times_seen = test_one_model_training(matches, ss.player_id_dict, ss.player_name_dict, {}, 200, 200, neighbor_regularization=neighbor_regularization)
+    print('')
 
-    new_ranks = train_model(train_matches, validation_matches, ss.player_id_dict, ss.player_name_dict, {}, neighbor_regularization=neighbor_regularization)
-
-    test_pred = predict_outcomes(new_ranks, test_matches[:,0], test_matches[:,1])
-    test_numcorrect = score_numcorrect(test_pred, test_matches[:,2])
-    test_avg_error = score_avg_error(test_pred, test_matches[:,2])
-    test_median_error = score_median_error(test_pred, test_matches[:,2])
-    print('{:d}/{:d} = {:.2f}% correct in test, avg/median gross error {:.3f}/{:.3f}'.format(test_numcorrect, len(test_matches), float(test_numcorrect)/len(test_matches)*100, test_avg_error, test_median_error))
-
-    ss.save_model(new_ranks)
+    # Get final model using the chosen hyperparameters across all available data
+    #new_ranks, times_seen = train_model(matches, ss.player_id_dict, ss.player_name_dict, {}, [], neighbor_regularization=neighbor_regularization)
+    #ss.save_model(new_ranks, times_seen)

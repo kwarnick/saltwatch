@@ -13,7 +13,7 @@ import saltbettor as sb
 # Global variables/params for timed behaviors
 STATE_CHECK_COOLDOWN = 2.    # Don't get state twice in a cooldown period - prevent duplicates
 DATA_WRITE_PERIOD = 1*60*60  # Save data to disk every hour
-MODEL_RELOAD_PERIOD = 6*60*60   # Reload the model from disk every six hours
+MODEL_RELOAD_PERIOD = 1*60*60   # Reload the model from disk every hour
 CONNECTION_RETRY_COOLDOWN = 30  # If connection fails, try to reconnect after a cooldown
 last_state_check = 0 # Start with no cooldown
 last_data_write = 0

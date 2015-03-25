@@ -77,10 +77,18 @@ def place_saltmind_bet(match, wager=1):
         place_bet(player, wager)
 
 
+def display_player_statistics(pid):
+    try:
+        print('{:5}: Times seen: {:3} Rank: {:.3f}'.format(pid, ss.times_seen[pid], ss.ranks[pid]))
+    except KeyError:
+        print('{:5}: Times seen: {:3} Rank: None'.format(pid, 0))
+
+
 def act_on_processed_state(mode, status, match):
-    if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
-        if status == sp.OPEN:
+    if status == sp.OPEN:
+        display_player_statistics(match[0])
+        display_player_statistics(match[1])
+        if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
             place_saltmind_bet(match, wager=10)
-    elif mode == sp.EXHIBITION:
-        if status == sp.OPEN:
+        elif mode == sp.EXHIBITION:
             place_random_bet()

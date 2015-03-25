@@ -13,12 +13,13 @@ RANKS_FILENAME = 'ranks.p'
 player_id_dict, player_name_dict = {}, {}
 matches = []
 ranks = {}
+times_seen = {}
 
 
 def load_persistent_data():
     global player_id_dict, player_name_dict
     global matches
-    global ranks
+    global ranks, times_seen
 
     if os.path.isfile(PLAYERS_FILENAME):
         player_id_dict, player_name_dict = pickle.load(open(PLAYERS_FILENAME, 'rb'))
@@ -35,7 +36,7 @@ def load_persistent_data():
         matches = []
 
     if os.path.isfile(RANKS_FILENAME):
-        ranks = pickle.load(open(RANKS_FILENAME, 'rb'))
+        ranks, times_seen = pickle.load(open(RANKS_FILENAME, 'rb'))
         print('{:d} ranks loaded'.format(len(ranks)))
     else:
         print('FIle {} not found, no ranks loaded'.format(RANKS_FILENAME))
@@ -56,20 +57,22 @@ def save_persistent_data():
         pickle.dump([], open(MATCHES_FILENAME, 'wb'))
 
 
-def save_model(new_ranks):
-    global ranks
+def save_model(new_ranks, new_times_seen):
+    global ranks, times_seen
     ranks = new_ranks
-    pickle.dump(ranks, open(RANKS_FILENAME, 'wb'))
+    times_seen = new_times_seen
+    pickle.dump([ranks, times_seen], open(RANKS_FILENAME, 'wb'))
 
 
 def load_model():
-    global ranks
+    global ranks, times_seen
     if os.path.isfile(RANKS_FILENAME):
-        ranks = pickle.load(open(RANKS_FILENAME, 'rb'))
+        ranks, times_seen = pickle.load(open(RANKS_FILENAME, 'rb'))
         print('{:d} ranks loaded'.format(len(ranks)))
     else:
         print('File {} not found'.format(RANKS_FILENAME))
-        ranks = []
+        ranks = {}
+        times_seen = {}
     
 
 def save_match(match):
