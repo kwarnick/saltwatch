@@ -88,7 +88,9 @@ def act_on_processed_state(mode, status, match):
     if status == sp.OPEN:
         display_player_statistics(match[0])
         display_player_statistics(match[1])
-        if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
+        if mode == sp.MATCHMAKING:
             place_saltmind_bet(match, wager=10)
+        elif mode == sp.TOURNAMENT:
+            pass
         elif mode == sp.EXHIBITION:
             place_random_bet()

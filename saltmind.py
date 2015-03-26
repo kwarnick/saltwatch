@@ -177,19 +177,27 @@ def test_one_model_training(matches, pid_dict, pname_dict, initial_ranks, N_VAL,
 if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
-        if len(sys.argv)>2:
-            random_state = int(sys.argv[2])
-        else:
-            random_state = 1334
     else:
-        neighbor_regularization = 0.05
-
+        neighbor_regularization = 0.01
+    if len(sys.argv)>2:
+        N_VAL = int(sys.argv[2])
+    else:
+        N_VAL = 0
+    if len(sys.argv)>3:
+        N_TEST = int(sys.argv[3])
+    else:
+        N_TEST = 0
+    if len(sys.argv)>4:
+        random_state = int(sys.argv[4])
+    else:
+        random_state = 1334
+    
     ss.load_persistent_data()
     matches = np.array(ss.matches)
-    # Test a given set of model hyperparameters, separating validation and test sets from the training set
-    #new_ranks, times_seen = test_one_model_training(matches, ss.player_id_dict, ss.player_name_dict, {}, 200, 200, neighbor_regularization=neighbor_regularization, random_state=random_state)
-    #print('')
-
-    # Get final model using the chosen hyperparameters across all available data
-    new_ranks, times_seen = train_model(matches, ss.player_id_dict, ss.player_name_dict, {}, [], neighbor_regularization=neighbor_regularization)
-    ss.save_model(new_ranks, times_seen)
+    if N_VAL>0 and N_TEST>0:
+        # Test a given set of model hyperparameters, separating validation and test sets from the training set
+        new_ranks, times_seen = test_one_model_training(matches, ss.player_id_dict, ss.player_name_dict, {}, 200, 200, neighbor_regularization=neighbor_regularization, random_state=random_state)
+    elif N_VAL==0 and N_TEST==0:
+        # Get final model using the chosen hyperparameters across all available data
+        new_ranks, times_seen = train_model(matches, ss.player_id_dict, ss.player_name_dict, {}, [], neighbor_regularization=neighbor_regularization)
+        ss.save_model(new_ranks, times_seen)
