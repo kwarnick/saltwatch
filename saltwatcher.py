@@ -56,6 +56,7 @@ def on_error(ws, error):
 
 def on_close(ws):
     ss.save_persistent_data()
+    last_data_write = time()
     print("### closed ###")
 
     while True:
@@ -67,10 +68,9 @@ def on_close(ws):
             websocket.enableTrace(True)
             ws = connect('www-cdn-twitch.saltybet.com', 8000)
             ws.run_forever()
+            break
         except: 
             continue
-        break
-
 
 
 def on_open(ws):
@@ -96,7 +96,11 @@ def connect(server, port):
 
 if __name__ == "__main__":
     ss.load_persistent_data()
+    last_data_write = time()   # Loading counts as having up-to-date data on disk
+    
     ss.load_model()
+    last_model_load = time()
+    
     sb.login()
 
     websocket.enableTrace(True)
