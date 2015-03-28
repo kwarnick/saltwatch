@@ -177,7 +177,7 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
 def hyperparameter_search():
     N_VAL = 0
     N_TEST = 200
-    nr_vals = np.linspace(0, 0.3, 31)
+    nr_vals = np.linspace(0, 0.15, 31)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
