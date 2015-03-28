@@ -82,7 +82,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             score_performance(ranks, validation_matches, 'validation')
         print('')
 
-    MAX_ITER = 50
+    MAX_ITER = 100
     for i in range(MAX_ITER):
         if verbose:
             print('Iteration {:d}'.format(i))
@@ -177,7 +177,7 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
 def hyperparameter_search():
     N_VAL = 0
     N_TEST = 200
-    nr_vals = np.linspace(0, 1, 20)
+    nr_vals = np.linspace(0, 0.3, 31)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
