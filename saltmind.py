@@ -201,14 +201,14 @@ def hyperparameter_search():
     print('')
     print('Top 5 parameters by high accuracy and then by low average error: ')
     for index in indices[:5]:
-        print('{:5.2f}:  {:.2f}% accuracy, {:.3f}/{:.3f} avg/median error'.format(nr_vals[index], scores[index,0], scores[index,1], scores[index,2]))
+        print('{:5.3f}:  {:.2f}% accuracy, {:.3f}/{:.3f} avg/median error'.format(nr_vals[index], scores[index,0], scores[index,1], scores[index,2]))
 
 
 if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.06
+        neighbor_regularization = 0.04
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
