@@ -28,6 +28,9 @@ def calc_weights(t, tmin, tmax):
   
 
 def calc_neighborhoods(matches, weights, pid_list):
+
+    #neighborhood_ids_2 = [[match[0] for match in matches if match[1]==pid] + [match[1] for match in matches if match[0]==pid] for pid in pid_list]
+    # ^ Would need the weights too, in the same order. Probably just one big list comprehension grabbing both. No clear time savings either. Oh well, leave for now.
     neighborhood_ids = []
     neighborhood_weights = []
     for pid in pid_list:
