@@ -189,7 +189,6 @@ def do_surgery_remove_teams(matches, pid_dict, pname_dict):
 
     # Removing teams means removing matches they played. If a valid player only played against teams, they will
     # be absent from the new match list. If so, reindex the dictionaries and matches.
-    print('Orphaned names found as result of team match skipping, removing...')
     new_matches, new_pid_dict, new_pname_dict = do_surgery_remove_extra_names(new_matches, new_pid_dict, new_pname_dict) 
     
     print('')
