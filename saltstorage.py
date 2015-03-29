@@ -90,6 +90,7 @@ def assign_new_player_id(pname):
         new_id = 0
     player_id_dict[pname] = new_id
     player_name_dict[new_id] = pname
+    print('{} assigned to ID {:d}'.format(pname, new_id))
 
     return new_id
     

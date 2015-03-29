@@ -94,15 +94,25 @@ def check_dictionary_conciseness(matches, pname_dict, return_concise_names=False
         print('Checking if all {:d} player IDs appear in at least one match'.format(len(pname_dict)))
 
     concise = True
-    concise_names_list = []
-    for pid in pname_dict.keys():
-        num_appearances = np.sum(np.logical_or(np.array(matches)[:][:,0]==pid, np.array(matches)[:][:,1]==pid))
-        if num_appearances == 0:
-            if verbose:
-                print('{} does not appear in any match'.format(pname_dict[pid]))
-            concise = False
-        else:
-            concise_names_list.append(pname_dict[pid])
+    bincount1 = np.bincount(np.array(matches)[:,0], minlength=np.max(pname_dict.keys())+1)
+    bincount2 = np.bincount(np.array(matches)[:,1], minlength=np.max(pname_dict.keys())+1)
+    total_counts = bincount1 + bincount2
+    if np.sum(total_counts==0)>0:
+        concise = False
+        for pid in np.where(total_counts==0)[0]:
+            print('{} does not appear in any match'.format(pname_dict[pid]))
+    concise_names_list = [pname_dict[pid] for pid in np.where(total_counts>0)[0]]
+
+#    concise = True
+#    concise_names_list = []
+#    for pid in pname_dict.keys():
+#        num_appearances = np.sum(np.logical_or(np.array(matches)[:][:,0]==pid, np.array(matches)[:][:,1]==pid))
+#        if num_appearances == 0:
+#            if verbose:
+#                print('{} does not appear in any match'.format(pname_dict[pid]))
+#            concise = False
+#        else:
+#            concise_names_list.append(pname_dict[pid])
 
     if return_concise_names:
         return concise, concise_names_list
