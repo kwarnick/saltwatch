@@ -23,7 +23,7 @@ def check_dictionary_reversibility(dict1, dict2):
 
 
 def check_dictionary_value_uniqueness(pdict):
-    values = pdict.values()
+    values = list(pdict.values())
     unique_values = np.unique(values)
     
     unique = True
@@ -94,8 +94,8 @@ def check_dictionary_conciseness(matches, pname_dict, return_concise_names=False
         print('Checking if all {:d} player IDs appear in at least one match'.format(len(pname_dict)))
 
     concise = True
-    bincount1 = np.bincount(np.array(matches)[:,0], minlength=np.max(pname_dict.keys())+1)
-    bincount2 = np.bincount(np.array(matches)[:,1], minlength=np.max(pname_dict.keys())+1)
+    bincount1 = np.bincount(np.array(matches)[:,0], minlength=np.max(list(pname_dict.keys()))+1)
+    bincount2 = np.bincount(np.array(matches)[:,1], minlength=np.max(list(pname_dict.keys()))+1)
     total_counts = bincount1 + bincount2
     if np.sum(total_counts==0)>0:
         concise = False
