@@ -84,10 +84,24 @@ def display_player_statistics(pid):
         print('{:4}:  Times seen: {:2}  Rank: None'.format(pid, 0))
 
 
+def display_outcome_prediction(pid1, pid2):
+    try:
+        outcome = sm.predict_one_outcome(ss.ranks, pid1, pid2)
+        if outcome<0.5:
+            print('{} wins with {:.2f}% probability'.format(ss.player_name_dict[pid1], (1-outcome)*100))
+        elif outcome>0.5:
+            print('{} wins with {:.2f}% probability'.format(ss.player_name_dict[pid2], outcome*100))
+        else:
+            print('No prediction available.')
+    except KeyError:
+        print('No prediction available')
+
+
 def act_on_processed_state(mode, status, match):
     if status == sp.OPEN:
         display_player_statistics(match[0])
         display_player_statistics(match[1])
+        display_outcome_prediction(match[0], match[1])
         if mode == sp.MATCHMAKING:
             place_saltmind_bet(match, wager=10)
         elif mode == sp.TOURNAMENT:

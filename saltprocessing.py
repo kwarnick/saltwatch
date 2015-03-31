@@ -148,8 +148,8 @@ def process_state(state):
         winner = int(state['status'])-1         # Winner - 0/1 for p1/p2
     else:                                       
         winner = -1                             # Winner undefined        
-    p1total = int(state['p1total'].replace(',','')) # $ bet on P1
-    p2total = int(state['p2total'].replace(',','')) # $ bet on P2
+    p1total = int(state['p1total'].replace(',','')) # amt bet on P1
+    p2total = int(state['p2total'].replace(',','')) # amt bet on P2
     timestamp = int(time())                    # Timestamp (Unix epoch seconds)
     match = [p1_id, p2_id, winner, p1total, p2total, timestamp]
 
