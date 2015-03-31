@@ -51,8 +51,7 @@ def calc_neighborhoods(matches, weights, pid_list):
         
 
 def calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights):
-    do_dot = np.vectorize(np.dot)
-    neighborhood_averages = do_dot(neighborhood_ranks, neighborhood_weights) / neighborhood_total_weights
+    neighborhood_averages = [np.dot(ranks, weights)/total_weight for (ranks,weights,total_weight) in zip(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)]
     return neighborhood_averages
 
 
@@ -64,14 +63,12 @@ def calc_neighborhood_ranks(neighborhood_ids, ranks):
 
 
 def calc_neighborhood_sizes(neighborhood_ids):
-    do_len = np.vectorize(len)
-    neighborhood_sizes = np.array(do_len(neighborhood_ids), dtype=int)
+    neighborhood_sizes = [len(x) for x in neighborhood_ids]
     return neighborhood_sizes
 
 
 def calc_neighborhood_total_weights(neighborhood_weights):
-    do_sum = np.vectorize(np.sum)
-    neighborhood_total_weights = do_sum(neighborhood_weights)
+    neighborhood_total_weights = [sum(weights) for weights in neighborhood_weights]
     return neighborhood_total_weights
 
 
@@ -96,9 +93,9 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
         
         for weight, match in zip(weights[indices], matches[indices]):
             pred = predict_one_outcome(ranks, match[0], match[1])
-            pred_factor = weight*(pred-match[2])*pred*(1-pred)
-            ranks[match[0]] += learning_rate *  (pred_factor + neighbor_regularization/neighborhood_sizes[lookup[match[0]]]*(ranks[match[0]]-neighborhood_averages[lookup[match[0]]]))
-            ranks[match[1]] += learning_rate * (-pred_factor + neighbor_regularization/neighborhood_sizes[lookup[match[1]]]*(ranks[match[1]]-neighborhood_averages[lookup[match[1]]]))
+            pred_factor = weight*(match[2]-pred)*pred*(1-pred)
+            ranks[match[0]] -= learning_rate *  (pred_factor + neighbor_regularization/neighborhood_sizes[lookup[match[0]]]*(ranks[match[0]]-neighborhood_averages[lookup[match[0]]]))
+            ranks[match[1]] -= learning_rate * (-pred_factor + neighbor_regularization/neighborhood_sizes[lookup[match[1]]]*(ranks[match[1]]-neighborhood_averages[lookup[match[1]]]))
        
         if verbose:
             score_performance(ranks, matches, 'training')
@@ -180,7 +177,7 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
 def hyperparameter_search():
     N_VAL = 0
     N_TEST = 200
-    nr_vals = np.linspace(0, 0.15, 31)
+    nr_vals = np.arange(0,1,0.01)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
