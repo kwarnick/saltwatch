@@ -82,13 +82,14 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             score_performance(ranks, validation_matches, 'validation')
         print('')
 
-    MAX_ITER = 100
+    MAX_ITER = 50
     for i in range(MAX_ITER):
         if verbose:
             print('Iteration {:d}'.format(i))
         neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
         neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
         learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
+        #learning_rate = 1
         indices = np.random.permutation(len(matches))
         
         for weight, match in zip(weights[indices], matches[indices]):
@@ -96,6 +97,8 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             pred_factor = weight*(match[2]-pred)*pred*(1-pred)
             ranks[match[0]] -= learning_rate *  (pred_factor + neighbor_regularization/neighborhood_sizes[lookup[match[0]]]*(ranks[match[0]]-neighborhood_averages[lookup[match[0]]]))
             ranks[match[1]] -= learning_rate * (-pred_factor + neighbor_regularization/neighborhood_sizes[lookup[match[1]]]*(ranks[match[1]]-neighborhood_averages[lookup[match[1]]]))
+            #ranks[match[0]] -= learning_rate *  (pred_factor + neighbor_regularization*(ranks[match[0]]-neighborhood_averages[lookup[match[0]]]))
+            #ranks[match[1]] -= learning_rate * (-pred_factor + neighbor_regularization*(ranks[match[1]]-neighborhood_averages[lookup[match[1]]]))
        
         if verbose:
             score_performance(ranks, matches, 'training')
@@ -177,7 +180,7 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
 def hyperparameter_search():
     N_VAL = 0
     N_TEST = 200
-    nr_vals = np.arange(0,1,0.01)
+    nr_vals = np.arange(0,2,0.02)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
@@ -193,9 +196,10 @@ def hyperparameter_search():
 
     scores = np.zeros((len(nr_vals),3))
     for i, neighbor_regularization in enumerate(nr_vals):
-        new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights,
+        new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights,
                 validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, verbose=False)
         scores[i,:] = score_performance(new_ranks, test_matches, 'test', return_values=True)
+        print('Ranks {:0.3f} - {:0.3f}'.format(np.min(list(new_ranks.values())), np.max(list(new_ranks.values()))))
     
     indices = np.lexsort((scores[:,1], -scores[:,0]))  # Second one has first sort priority
     print('')
@@ -239,7 +243,7 @@ if __name__ == "__main__":
     pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(train_matches, ss.player_id_dict, ss.player_name_dict, initial_ranks={})
 
     # Train the model, score and save if relevant
-    new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, 
+    new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, 
                 validation_matches=[], neighbor_regularization=neighbor_regularization)
 
     if len(test_matches)>0:
