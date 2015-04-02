@@ -206,7 +206,7 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
     return new_ranks, times_seen
 
 
-def hyperparameter_search():
+def hyperparameter_search(initial_ranks):
     N_VAL = 0
     N_TEST = 200
     nr_vals = np.arange(0,1,0.05)
@@ -222,7 +222,7 @@ def hyperparameter_search():
         validation_matches = []
     test_matches = matches[-N_TEST:]
 
-    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(train_matches, ss.player_id_dict, ss.player_name_dict, initial_ranks={})
+    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(train_matches, ss.player_id_dict, ss.player_name_dict, initial_ranks=initial_ranks)
 
     scores = np.zeros((len(nr_vals),3))
     for i, neighbor_regularization in enumerate(nr_vals):

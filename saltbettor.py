@@ -103,8 +103,9 @@ def act_on_processed_state(mode, status, match):
         display_player_statistics(match[1])
         display_outcome_prediction(match[0], match[1])
         if mode == sp.MATCHMAKING:
-            place_saltmind_bet(match, wager=10)
+            place_saltmind_bet(match, wager=100)
         elif mode == sp.TOURNAMENT:
-            pass
+            balance = get_tournament_balance()
+            place_saltmind_bet(match, wager=balance)
         elif mode == sp.EXHIBITION:
             place_random_bet()
