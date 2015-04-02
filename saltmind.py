@@ -73,7 +73,7 @@ def calc_neighborhood_total_weights(neighborhood_weights):
 
 
 def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, 
-        validation_matches=[], neighbor_regularization=0.3, verbose=True):
+        validation_matches=[], neighbor_regularization=0.4, MAX_ITER=200, verbose=True):
 
     if verbose:
         print('Initial scores: ')
@@ -82,14 +82,13 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             score_performance(ranks, validation_matches, 'validation')
         print('')
 
-    MAX_ITER = 50
     for i in range(MAX_ITER):
         if verbose:
             print('Iteration {:d}'.format(i))
         neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
         neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
-        learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
-        #learning_rate = 1
+        #learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
+        learning_rate = 1
         indices = np.random.permutation(len(matches))
         
         for weight, match in zip(weights[indices], matches[indices]):
@@ -130,7 +129,7 @@ def score_median_error(Y_pred, Y):
 
 def prepare_inputs(matches, pid_dict, pname_dict, initial_ranks={}, verbose=True):
     # Per-player attributes
-    pid_list, lookup, ranks = prepare_player_related_inputs(matches, pid_dict, pname_dict, initial_ranks={})
+    pid_list, lookup, ranks = prepare_player_related_inputs(matches, pid_dict, pname_dict, initial_ranks=initial_ranks)
     if verbose:
         print('{:d} players found in {:d} matches'.format(len(pid_list), len(matches)))
     
@@ -149,7 +148,7 @@ def prepare_player_related_inputs(matches, pid_dict, pname_dict, initial_ranks={
     lookup = {pid:i for i,pid in enumerate(pid_list)}
     
     # Merge initial ranks onto default values
-    ranks = {pid:1. for pid in pid_list}
+    ranks = {pid:20. for pid in pid_list}
     for key in initial_ranks.keys():
         ranks[key] = initial_ranks[key]
 
@@ -177,10 +176,42 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
         return pct_correct, avg_error, median_error
 
 
+def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, verbose=True, random_state=1334):
+    
+    # Separate validation and training sets from the test set
+    if N_TEST>0:
+        train_val_matches = matches[:-N_TEST]
+        test_matches = matches[-N_TEST:]
+    elif N_TEST==0:
+        train_val_matches = matches
+        test_matches = []
+
+    # Split the validation and training sets
+    if N_VAL>0:
+        train_matches, validation_matches = train_test_split(train_val_matches, test_size=N_VAL, random_state=random_state)
+    elif N_VAL==0:
+        train_matches = train_val_matches
+        validation_matches = []
+
+    # Prepare inputs for training models from the current data sets
+    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(train_matches, pid_dict, pname_dict, initial_ranks=initial_ranks)
+
+    # Train the model, score and save if relevant
+    new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, 
+                validation_matches=[], neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=verbose)
+
+    if len(test_matches)>0:
+        score = score_performance(new_ranks, test_matches, 'test', return_values=True)
+
+    return new_ranks, times_seen
+
+
+
 def hyperparameter_search():
     N_VAL = 0
     N_TEST = 200
-    nr_vals = np.arange(0,2,0.02)
+    nr_vals = np.arange(0,1,0.02)
+    MAX_ITER = 200
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
@@ -197,7 +228,7 @@ def hyperparameter_search():
     scores = np.zeros((len(nr_vals),3))
     for i, neighbor_regularization in enumerate(nr_vals):
         new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights,
-                validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, verbose=False)
+                validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=False)
         scores[i,:] = score_performance(new_ranks, test_matches, 'test', return_values=True)
         print('Ranks {:0.3f} - {:0.3f}'.format(np.min(list(new_ranks.values())), np.max(list(new_ranks.values()))))
     
@@ -212,7 +243,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.04
+        neighbor_regularization = 0.0
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
@@ -227,27 +258,11 @@ if __name__ == "__main__":
         random_state = 1334
     
     ss.load_persistent_data()
+    ss.load_model()
     matches = np.array(ss.matches)
+    initial_ranks = ss.ranks
 
-    if N_VAL>0 and N_TEST>0:
-        # Separate validation and test sets from the training set
-        train_matches, validation_matches = train_test_split(matches[:-N_TEST], test_size=N_VAL, random_state=random_state)
-        test_matches = matches[-N_TEST:]
-    else:
-        # Use all data for training, leave none for validation or testing
-        train_matches = matches
-        validation_matches = []
-        test_matches = []
+    new_ranks, times_seen = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 200, verbose=True, random_state=random_state)
 
-    # Prepare inputs for training models from the current data sets
-    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(train_matches, ss.player_id_dict, ss.player_name_dict, initial_ranks={})
-
-    # Train the model, score and save if relevant
-    new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, 
-                validation_matches=[], neighbor_regularization=neighbor_regularization)
-
-    if len(test_matches)>0:
-        score = score_performance(new_ranks, test_matches, 'test', return_values=True)
-    
     if N_VAL==0 and N_TEST==0:
         ss.save_model(new_ranks, times_seen)
