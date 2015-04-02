@@ -206,11 +206,10 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
     return new_ranks, times_seen
 
 
-
 def hyperparameter_search():
     N_VAL = 0
     N_TEST = 200
-    nr_vals = np.arange(0,1,0.02)
+    nr_vals = np.arange(0,1,0.05)
     MAX_ITER = 200
 
     ss.load_persistent_data()
