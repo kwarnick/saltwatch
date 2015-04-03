@@ -79,9 +79,9 @@ def place_saltmind_bet(match, wager=1):
 
 def display_player_statistics(pid):
     try:
-        print('{:4}:  Times seen: {:2}  Rank: {:.3f}'.format(pid, ss.times_seen[pid], ss.ranks[pid]))
+        print('{:4}:  Record: {:2}/{:2}/{:2}  Rank: {:.2f}  Acc/TPR/TNR: {:3d}% /{:3d}% /{:3d}%'.format(pid, ss.wins[pid], ss.losses[pid], ss.times_seen[pid], ss.ranks[pid], int(ss.acc*100), int(ss.tpr*100), int(ss.tnr*100)))
     except KeyError:
-        print('{:4}:  Times seen: {:2}  Rank: None'.format(pid, 0))
+        print('{:4}:  Record: {:2}/{:2}/{:2}  Rank: {:3  }  Acc/TPR/TNR: {:3 }% /{:3 }% /{:3 }%'.format(pid, 0, 0, 0, '', '', '', ''))
 
 
 def display_outcome_prediction(pid1, pid2):
