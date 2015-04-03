@@ -105,12 +105,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
                 score_performance(ranks, validation_matches, 'validation')
             print('')
 
-    # Repackage neighborhood sizes for export
-    times_seen = {}
-    for pid, size in zip(pid_list, neighborhood_sizes):
-        times_seen[pid] = size
-
-    return ranks, times_seen
+    return ranks
 
 
 def score_numcorrect(Y_pred, Y):
@@ -177,7 +172,6 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
 
 
 def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, verbose=True, random_state=1334):
-    
     # Separate validation and training sets from the test set
     if N_TEST>0:
         train_val_matches = matches[:-N_TEST]
@@ -197,13 +191,89 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
     pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(train_matches, pid_dict, pname_dict, initial_ranks=initial_ranks)
 
     # Train the model, score and save if relevant
-    new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, 
-                validation_matches=[], neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=verbose)
+    new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=[], neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=verbose)
 
     if len(test_matches)>0:
         score = score_performance(new_ranks, test_matches, 'test', return_values=True)
 
-    return new_ranks, times_seen
+    wins, losses, times_seen = evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_sizes, neighborhood_total_weights)
+
+    acc, tpr, tnr = evaluate_prediction_stats(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_sizes, neighborhood_total_weights)
+    
+    return new_ranks, wins, losses, times_seen, acc, tpr, tnr
+
+
+def evaluate_prediction_stats(matches, pid_list, lookup, ranks, weights, neighbothood_ids, neighborhood_sizes, neighborhood_total_weights):
+    predictions = predict_outcomes(ranks, matches[:,0], matches[:,1])
+
+    tp = {pid:0 for pid in pid_list}
+    fp = {pid:0 for pid in pid_list}
+    tn = {pid:0 for pid in pid_list}
+    fn = {pid:0 for pid in pid_list}
+    
+    for match,pred in zip(matches,predictions):
+        if match[2] == 0:
+            winner_id = match[0]
+            loser_id = match[1]
+        elif match[2] == 1:
+            winner_id = match[1]
+            loser_id = match[0]
+        if pred == 0.5:
+            pred = int(np.random.random())  
+        if match[2] == pred:
+            tp[winner_id] += 1
+            tn[loser_id] += 1
+        else:
+            fp[winner_id] += 1
+            fn[loser_id] += 1
+
+    totals = {pid:tp[pid]+tn[pid]+fp[pid]+fn[pid] for pid in pid_list}
+    totals_p = {pid:tp[pid]+fp[pid] for pid in pid_list}
+    totals_n = {pid:tn[pid]+fn[pid] for pid in pid_list}
+    totals_correct = {pid:tp[pid]+tn[pid] for pid in pid_list}
+
+    acc = {pid:(totals_correct[pid])/float(totals[pid]) for pid in pid_list if not totals[pid]==0}
+    tpr = {pid:(tp[pid])/float(totals_p[pid]) for pid in pid_list if not totals_p[pid]==0}
+    tnr = {pid:(tn[pid])/float(totals_n[pid]) for pid in pid_list if not totals_n[pid]==0}
+
+    return acc, tpr, tnr
+
+
+def evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_sizes, neighborhood_total_weights):
+
+    # Repackage neighborhood sizes for export
+    times_seen = {}
+    for pid, size in zip(pid_list, neighborhood_sizes):
+        times_seen[pid] = size
+
+    # get wins and losses
+    w = {pid:0 for pid in pid_list}
+    l = {pid:0 for pid in pid_list}
+    for match in matches:
+        # match[2] indicates whether match[0] or match[1] won
+        if match[2] == 0:
+            w[match[0]] += 1
+            l[match[1]] += 1
+        elif match[2] == 1:
+            w[match[1]] += 1
+            l[match[0]] += 1
+
+    # check that wins + losses = times_seen
+    for pid in pid_list:
+        if not (w[pid] + l[pid] == times_seen[pid]):
+            print('Player id {} has an invalid w/l/t count of {}/{]/{}'.format(pid, w[pid], l[pid], times_seen[pid]))
+
+    return w, l, times_seen
+
+    # get retroactive predictions list
+
+    # from predictions, get accuracy
+
+    # from predictions, get true positive rate (% predicted wins that happened)
+
+    #from predictions, get true negative rate (% predicted losses that happened)
+    
+    return times_seen, w, l, acc, tpr, tnr
 
 
 def hyperparameter_search(initial_ranks):
@@ -226,8 +296,7 @@ def hyperparameter_search(initial_ranks):
 
     scores = np.zeros((len(nr_vals),3))
     for i, neighbor_regularization in enumerate(nr_vals):
-        new_ranks, times_seen = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights,
-                validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=False)
+        new_ranks= train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=False)
         scores[i,:] = score_performance(new_ranks, test_matches, 'test', return_values=True)
         print('Ranks {:0.3f} - {:0.3f}'.format(np.min(list(new_ranks.values())), np.max(list(new_ranks.values()))))
     
@@ -257,11 +326,13 @@ if __name__ == "__main__":
         random_state = 1334
     
     ss.load_persistent_data()
-    ss.load_model()
+    #ss.load_player_stats()
     matches = np.array(ss.matches)
-    initial_ranks = ss.ranks
-
-    new_ranks, times_seen = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 200, verbose=True, random_state=random_state)
-
+    #initial_ranks = ss.ranks
+    import pickle
+    initial_ranks, times_seen = pickle.load(open('ranks.p','rb'))
+    
+    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 200, verbose=True, random_state=random_state)
+     
     if N_VAL==0 and N_TEST==0:
-        ss.save_model(new_ranks, times_seen)
+        ss.save_player_stats(new_ranks, wins, losses, times_seen, acc, tpr, tnr)
