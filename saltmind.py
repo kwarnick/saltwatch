@@ -206,20 +206,25 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
 def evaluate_prediction_stats(matches, pid_list, lookup, ranks, weights, neighbothood_ids, neighborhood_sizes, neighborhood_total_weights):
     predictions = predict_outcomes(ranks, matches[:,0], matches[:,1])
 
-    tp = {pid:0 for pid in pid_list}
-    fp = {pid:0 for pid in pid_list}
-    tn = {pid:0 for pid in pid_list}
-    fn = {pid:0 for pid in pid_list}
+    tp = {pid:0.0 for pid in pid_list}
+    fp = {pid:0.0 for pid in pid_list}
+    tn = {pid:0.0 for pid in pid_list}
+    fn = {pid:0.0 for pid in pid_list}
     
-    for match,pred in zip(matches,predictions):
+    for match,pred_val in zip(matches,predictions):
+        # Get player IDs of the winner and loser
         if match[2] == 0:
             winner_id = match[0]
             loser_id = match[1]
         elif match[2] == 1:
             winner_id = match[1]
             loser_id = match[0]
-        if pred == 0.5:
-            pred = int(np.random.random())  
+        # See whether match[0] or match[1] was predicted to win
+        if pred_val == 0.5:
+            pred = int(round(np.random.random()))  
+        else:
+            pred = int(round(pred_val))
+        # Log the statistics from this match
         if match[2] == pred:
             tp[winner_id] += 1
             tn[loser_id] += 1
@@ -227,20 +232,21 @@ def evaluate_prediction_stats(matches, pid_list, lookup, ranks, weights, neighbo
             fp[winner_id] += 1
             fn[loser_id] += 1
 
+    print(max(tp.values()), max(fp.values()), max(tn.values()), max(fn.values()))
+    
     totals = {pid:tp[pid]+tn[pid]+fp[pid]+fn[pid] for pid in pid_list}
     totals_p = {pid:tp[pid]+fp[pid] for pid in pid_list}
     totals_n = {pid:tn[pid]+fn[pid] for pid in pid_list}
     totals_correct = {pid:tp[pid]+tn[pid] for pid in pid_list}
 
-    acc = {pid:(totals_correct[pid])/float(totals[pid]) for pid in pid_list if not totals[pid]==0}
-    tpr = {pid:(tp[pid])/float(totals_p[pid]) for pid in pid_list if not totals_p[pid]==0}
-    tnr = {pid:(tn[pid])/float(totals_n[pid]) for pid in pid_list if not totals_n[pid]==0}
+    acc = {pid:(totals_correct[pid])/float(totals[pid]) if not totals[pid]==0 else 0.0 for pid in pid_list}
+    tpr = {pid:(tp[pid])/float(totals_p[pid]) if not totals_p[pid]==0 else 0.0 for pid in pid_list}
+    tnr = {pid:(tn[pid])/float(totals_n[pid]) if not totals_n[pid]==0 else 0.0 for pid in pid_list}
 
     return acc, tpr, tnr
 
 
 def evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_sizes, neighborhood_total_weights):
-
     # Repackage neighborhood sizes for export
     times_seen = {}
     for pid, size in zip(pid_list, neighborhood_sizes):
@@ -326,13 +332,12 @@ if __name__ == "__main__":
         random_state = 1334
     
     ss.load_persistent_data()
-    #ss.load_player_stats()
+    ss.load_player_stats()
     matches = np.array(ss.matches)
-    #initial_ranks = ss.ranks
-    import pickle
-    initial_ranks, times_seen = pickle.load(open('ranks.p','rb'))
+    initial_ranks = ss.ranks
     
-    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 200, verbose=True, random_state=random_state)
+    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 100, verbose=True, random_state=random_state)
      
+    print(max(acc.values()), max(tpr.values()), max(tnr.values()))
     if N_VAL==0 and N_TEST==0:
         ss.save_player_stats(new_ranks, wins, losses, times_seen, acc, tpr, tnr)

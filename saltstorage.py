@@ -65,6 +65,8 @@ def save_player_stats(new_ranks, new_wins, new_losses, new_times_seen, new_acc, 
     tpr = new_tpr
     tnr = new_tnr
     pickle.dump([ranks, wins, losses, times_seen, acc, tpr, tnr], open(RANKS_FILENAME, 'wb'))
+    if not (len(ranks) == len(wins) == len(losses) == len(times_seen) == len(acc) == len(tpr) == len(tnr)):
+        print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
     print('{:d} players\' stats saved'.format(len(ranks)))
 
 
@@ -72,6 +74,8 @@ def load_player_stats():
     global ranks, wins, losses, times_seen, acc, tpr, tnr
     if os.path.isfile(RANKS_FILENAME):
         ranks, wins, losses, times_seen, acc, tpr, tnr = pickle.load(open(RANKS_FILENAME, 'rb'))
+        if not (len(ranks) == len(wins) == len(losses) == len(times_seen) == len(acc) == len(tpr) == len(tnr)):
+            print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
         print('{:d} players\' stats loaded'.format(len(ranks)))
     else:
         print('File {} not found'.format(RANKS_FILENAME))
