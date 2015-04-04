@@ -288,6 +288,8 @@ def hyperparameter_search(initial_ranks):
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
+    
+    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(matches, ss.player_id_dict, ss.player_name_dict, initial_ranks=initial_ranks)
 
     if N_VAL>0:
         train_matches, validation_matches = train_test_split(matches[:-N_TEST], test_size=N_VAL)
@@ -296,11 +298,9 @@ def hyperparameter_search(initial_ranks):
         validation_matches = []
     test_matches = matches[-N_TEST:]
 
-    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(train_matches, ss.player_id_dict, ss.player_name_dict, initial_ranks=initial_ranks)
-
     scores = np.zeros((len(nr_vals),3))
     for i, neighbor_regularization in enumerate(nr_vals):
-        new_ranks= train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=False)
+        new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=False)
         scores[i,:] = score_performance(new_ranks, test_matches, 'test', return_values=True)
         print('Ranks {:0.3f} - {:0.3f}'.format(np.min(list(new_ranks.values())), np.max(list(new_ranks.values()))))
     
