@@ -337,6 +337,5 @@ if __name__ == "__main__":
     
     new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 100, verbose=True, random_state=random_state)
      
-    print(max(acc.values()), max(tpr.values()), max(tnr.values()))
     if N_VAL==0 and N_TEST==0:
         ss.save_player_stats(new_ranks, wins, losses, times_seen, acc, tpr, tnr)
