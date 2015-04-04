@@ -191,7 +191,7 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
         validation_matches = []
 
     # Train the model, score and save if relevant
-    new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=[], neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=verbose)
+    new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=verbose)
 
     if len(test_matches)>0:
         score = score_performance(new_ranks, test_matches, 'test', return_values=True)
@@ -315,7 +315,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.001
+        neighbor_regularization = 0.01
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
