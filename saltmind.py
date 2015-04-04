@@ -286,7 +286,7 @@ def hyperparameter_search(initial_ranks):
     N_VAL = 0
     N_TEST = 200
     nr_vals = np.arange(0,0.5,0.05)
-    MAX_ITER = 200
+    MAX_ITER = 100
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
