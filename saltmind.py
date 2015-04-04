@@ -232,8 +232,6 @@ def evaluate_prediction_stats(matches, pid_list, lookup, ranks, weights, neighbo
             fp[winner_id] += 1
             fn[loser_id] += 1
 
-    print(max(tp.values()), max(fp.values()), max(tn.values()), max(fn.values()))
-    
     totals = {pid:tp[pid]+tn[pid]+fp[pid]+fn[pid] for pid in pid_list}
     totals_p = {pid:tp[pid]+fp[pid] for pid in pid_list}
     totals_n = {pid:tn[pid]+fn[pid] for pid in pid_list}
@@ -286,7 +284,7 @@ def hyperparameter_search(initial_ranks):
     N_VAL = 0
     N_TEST = 200
     nr_vals = np.arange(0,0.5,0.05)
-    MAX_ITER = 200
+    MAX_ITER = 100
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
@@ -317,7 +315,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.05
+        neighbor_regularization = 0.25
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
