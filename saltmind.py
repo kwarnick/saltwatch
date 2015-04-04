@@ -325,7 +325,11 @@ if __name__ == "__main__":
     else:
         N_TEST = 0
     if len(sys.argv)>4:
-        random_state = int(sys.argv[4])
+        MAX_ITER = int(sys.argv[4])
+    else:
+        MAX_ITER = 100
+    if len(sys.argv)>5:
+        random_state = int(sys.argv[5])
     else:
         random_state = 1334
     
@@ -335,7 +339,7 @@ if __name__ == "__main__":
     initial_ranks = ss.ranks
     #initial_ranks = {}
     
-    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 100, verbose=True, random_state=random_state)
+    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, verbose=True, random_state=random_state)
      
     if N_VAL==0 and N_TEST==0:
         ss.save_player_stats(new_ranks, wins, losses, times_seen, acc, tpr, tnr)
