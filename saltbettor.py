@@ -104,7 +104,11 @@ def act_on_processed_state(mode, status, match):
         display_outcome_prediction(match[0], match[1])
         if mode == sp.MATCHMAKING:
             balance = get_balance()
-            place_saltmind_bet(match, wager=max(int(balance/10.),400))
+            if balance <= 1000:
+                wager = balance
+            else:
+                wager = int(balance/10.)
+            place_saltmind_bet(match, wager=wager)
         elif mode == sp.TOURNAMENT:
             balance = get_tournament_balance()
             place_saltmind_bet(match, wager=balance)
