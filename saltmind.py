@@ -283,7 +283,7 @@ def evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhoo
 def hyperparameter_search(initial_ranks):
     N_VAL = 0
     N_TEST = 200
-    nr_vals = np.arange(0,0.5,0.05)
+    nr_vals = np.arange(0,0.1,0.01)
     MAX_ITER = 100
 
     ss.load_persistent_data()
@@ -315,7 +315,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.01
+        neighbor_regularization = 0.001
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
