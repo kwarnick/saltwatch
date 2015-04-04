@@ -87,8 +87,8 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             print('Iteration {:d}'.format(i))
         neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
         neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
-        #learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
-        learning_rate = 1
+        learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
+        #learning_rate = 1
         indices = np.random.permutation(len(matches))
         
         for weight, match in zip(weights[indices], matches[indices]):
@@ -285,7 +285,7 @@ def evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhoo
 def hyperparameter_search(initial_ranks):
     N_VAL = 0
     N_TEST = 200
-    nr_vals = np.arange(0,1,0.05)
+    nr_vals = np.arange(0,0.5,0.05)
     MAX_ITER = 200
 
     ss.load_persistent_data()
@@ -317,7 +317,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.0
+        neighbor_regularization = 0.05
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
@@ -334,7 +334,8 @@ if __name__ == "__main__":
     ss.load_persistent_data()
     ss.load_player_stats()
     matches = np.array(ss.matches)
-    initial_ranks = ss.ranks
+    #initial_ranks = ss.ranks
+    initial_ranks = {}
     
     new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 100, verbose=True, random_state=random_state)
      
