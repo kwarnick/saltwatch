@@ -172,6 +172,9 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
 
 
 def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, verbose=True, random_state=1334):
+    # Prepare inputs for training models from the current data sets
+    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(matches, pid_dict, pname_dict, initial_ranks=initial_ranks)
+    
     # Separate validation and training sets from the test set
     if N_TEST>0:
         train_val_matches = matches[:-N_TEST]
@@ -186,9 +189,6 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
     elif N_VAL==0:
         train_matches = train_val_matches
         validation_matches = []
-
-    # Prepare inputs for training models from the current data sets
-    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(train_matches, pid_dict, pname_dict, initial_ranks=initial_ranks)
 
     # Train the model, score and save if relevant
     new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=[], neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=verbose)
