@@ -315,7 +315,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.25
+        neighbor_regularization = 0.01
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
@@ -332,8 +332,8 @@ if __name__ == "__main__":
     ss.load_persistent_data()
     ss.load_player_stats()
     matches = np.array(ss.matches)
-    #initial_ranks = ss.ranks
-    initial_ranks = {}
+    initial_ranks = ss.ranks
+    #initial_ranks = {}
     
     new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, 100, verbose=True, random_state=random_state)
      
