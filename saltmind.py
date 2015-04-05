@@ -181,7 +181,7 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
     avg_error = score_avg_error(pred, matches[:,2])
     median_error = score_median_error(pred, matches[:,2])
     if verbose:
-        print('{:d}/{:d} = {:.2f}% correct in {}, avg/median gross error {:.3f}/{:.3f}'.format(numcorrect, len(matches), pct_correct, desc_str, avg_error, median_error))
+        print('{:d}/{:d} = {:.2f}% correct in {}, avg/median error {:.3f}/{:.3f}'.format(numcorrect, len(matches), pct_correct, desc_str, avg_error, median_error))
     if return_values:
         return pct_correct, avg_error, median_error
 
