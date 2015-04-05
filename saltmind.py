@@ -77,18 +77,21 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
 
     if verbose:
         print('Initial scores: ')
-        score_performance(ranks, matches, 'training')
         if len(validation_matches)>0:
             score_performance(ranks, validation_matches, 'validation')
+        score_performance(ranks, matches, 'training')
         print('')
 
+    best_val_score = 0.0
+    best_ranks = ranks.copy()
+    iterations_since_best_score = 0
     for i in range(MAX_ITER):
         if verbose:
             print('Iteration {:d}'.format(i))
         neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
         neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
-        learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
-        #learning_rate = 1
+        #learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
+        learning_rate = 1
         indices = np.random.permutation(len(matches))
         
         for weight, match in zip(weights[indices], matches[indices]):
@@ -99,13 +102,25 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             #ranks[match[0]] -= learning_rate *  (pred_factor + neighbor_regularization*(ranks[match[0]]-neighborhood_averages[lookup[match[0]]]))
             #ranks[match[1]] -= learning_rate * (-pred_factor + neighbor_regularization*(ranks[match[1]]-neighborhood_averages[lookup[match[1]]]))
        
+        if len(validation_matches)>0:
+            val_score, _, _ = score_performance(ranks, validation_matches, 'validation', verbose=verbose, return_values=True)
+            if val_score > best_val_score:
+                best_val_score = val_score
+                best_ranks = ranks
+                iterations_since_best_score = 0
+            else:
+                iterations_since_best_score +=1
+            if iterations_since_best_score>150:
+                if verbose:
+                    print('Validation criteria reached, aborting iteration.')
+                break
+        else:
+            best_ranks = ranks
         if verbose:
             score_performance(ranks, matches, 'training')
-            if len(validation_matches)>0:
-                score_performance(ranks, validation_matches, 'validation')
             print('')
 
-    return ranks
+    return best_ranks
 
 
 def score_numcorrect(Y_pred, Y):
@@ -281,10 +296,10 @@ def evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhoo
 
 
 def hyperparameter_search(initial_ranks):
-    N_VAL = 0
+    N_VAL = 200
     N_TEST = 200
     nr_vals = np.arange(0,0.1,0.01)
-    MAX_ITER = 100
+    MAX_ITER = 300
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
@@ -319,7 +334,7 @@ if __name__ == "__main__":
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
-        N_VAL = 0
+        N_VAL = 200
     if len(sys.argv)>3:
         N_TEST = int(sys.argv[3])
     else:
@@ -327,7 +342,7 @@ if __name__ == "__main__":
     if len(sys.argv)>4:
         MAX_ITER = int(sys.argv[4])
     else:
-        MAX_ITER = 100
+        MAX_ITER = 500
     if len(sys.argv)>5:
         random_state = int(sys.argv[5])
     else:
@@ -336,8 +351,8 @@ if __name__ == "__main__":
     ss.load_persistent_data()
     ss.load_player_stats()
     matches = np.array(ss.matches)
-    initial_ranks = ss.ranks
-    #initial_ranks = {}
+    #initial_ranks = ss.ranks
+    initial_ranks = {}
     
     new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, verbose=True, random_state=random_state)
      
