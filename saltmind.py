@@ -112,7 +112,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
                 iterations_since_best_score +=1
             if iterations_since_best_score>150:
                 if verbose:
-                    print('Validation criteria reached, aborting iteration.')
+                    print('Validation criteria reached, terminating iteration.')
                 break
         else:
             best_ranks = ranks

@@ -55,6 +55,19 @@ def save_persistent_data():
         pickle.dump([], open(MATCHES_FILENAME, 'wb'))
 
 
+def load_player_stats():
+    global ranks, wins, losses, times_seen, acc, tpr, tnr
+    if os.path.isfile(RANKS_FILENAME):
+        ranks, wins, losses, times_seen, acc, tpr, tnr = pickle.load(open(RANKS_FILENAME, 'rb'))
+        if not (len(ranks) == len(wins) == len(losses) == len(times_seen) == len(acc) == len(tpr) == len(tnr)):
+            print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
+        print('{:d} players\' stats loaded'.format(len(ranks)))
+    else:
+        print('File {} not found'.format(RANKS_FILENAME))
+        ranks = {}
+        times_seen = {}
+    
+
 def save_player_stats(new_ranks, new_wins, new_losses, new_times_seen, new_acc, new_tpr, new_tnr):
     global ranks, wins, losses, times_seen, acc, tpr, tnr
     ranks = new_ranks
@@ -69,19 +82,6 @@ def save_player_stats(new_ranks, new_wins, new_losses, new_times_seen, new_acc, 
         print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
     print('{:d} players\' stats saved'.format(len(ranks)))
 
-
-def load_player_stats():
-    global ranks, wins, losses, times_seen, acc, tpr, tnr
-    if os.path.isfile(RANKS_FILENAME):
-        ranks, wins, losses, times_seen, acc, tpr, tnr = pickle.load(open(RANKS_FILENAME, 'rb'))
-        if not (len(ranks) == len(wins) == len(losses) == len(times_seen) == len(acc) == len(tpr) == len(tnr)):
-            print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
-        print('{:d} players\' stats loaded'.format(len(ranks)))
-    else:
-        print('File {} not found'.format(RANKS_FILENAME))
-        ranks = {}
-        times_seen = {}
-    
 
 def save_match(match):
     global matches 

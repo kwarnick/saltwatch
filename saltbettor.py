@@ -58,23 +58,30 @@ def place_bet(player, wager):
     return False
 
 
-def get_random_bet(wager=1):
-    player = random.randint(0,1)
-    return player, wager
-
-
-def place_random_bet(wager=1):
-    player, wager = get_random_bet(wager)
-    return place_bet(player, wager)
-
-
-def place_saltmind_bet(match, wager=1):
+def place_saltmind_bet(mode, match):
+    # Get prediction value, predicted winner, and current balance
     pred = sm.predict_one_outcome(ss.ranks, match[0], match[1])
-    if pred==0.5:
-        place_random_bet(1)
+    if pred == 0.5:
+        player = random.randint(0,1)
     else:
         player = int(round(pred))
-        place_bet(player, wager)
+    balance = get_balance()
+
+    # Determine wager based on mode, prediction and balance
+    if mode == sp.MATCHMAKING:
+        if pred == 0.5:
+            wager = 1
+        elif balance <= 1000:
+            wager = balance
+        else:
+            wager = int(balance/10.)
+    elif mode == sp.TOURNAMENT:
+        wager = balance
+    elif mode == sp.EXHIBITION:
+        wager = 1
+
+    # Place bet with the chosen wager and player
+    return place_bet(player, wager)
 
 
 def display_player_statistics(pid):
@@ -102,15 +109,4 @@ def act_on_processed_state(mode, status, match):
         display_player_statistics(match[0])
         display_player_statistics(match[1])
         display_outcome_prediction(match[0], match[1])
-        if mode == sp.MATCHMAKING:
-            balance = get_balance()
-            if balance <= 1000:
-                wager = balance
-            else:
-                wager = int(balance/10.)
-            place_saltmind_bet(match, wager=wager)
-        elif mode == sp.TOURNAMENT:
-            balance = get_tournament_balance()
-            place_saltmind_bet(match, wager=balance)
-        elif mode == sp.EXHIBITION:
-            place_random_bet()
+        place_saltmind_bet(mode, match)
