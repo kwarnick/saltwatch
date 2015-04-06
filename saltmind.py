@@ -90,8 +90,8 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             print('Iteration {:d}'.format(i))
         neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
         neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
-        #learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
-        learning_rate = 1
+        learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
+        #learning_rate = 1
         indices = np.random.permutation(len(matches))
         
         for weight, match in zip(weights[indices], matches[indices]):
@@ -104,7 +104,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
        
         if len(validation_matches)>0:
             val_score, _, _ = score_performance(ranks, validation_matches, 'validation', verbose=verbose, return_values=True)
-            if val_score > best_val_score:
+            if val_score >= best_val_score:
                 best_val_score = val_score
                 best_ranks = ranks
                 iterations_since_best_score = 0
@@ -299,7 +299,7 @@ def hyperparameter_search(initial_ranks):
     N_VAL = 200
     N_TEST = 200
     nr_vals = np.arange(0,0.1,0.01)
-    MAX_ITER = 300
+    MAX_ITER = 500
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
