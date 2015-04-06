@@ -90,8 +90,8 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             print('Iteration {:d}'.format(i))
         neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
         neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
-        #learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
-        learning_rate = 1
+        learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
+        #learning_rate = 1
         indices = np.random.permutation(len(matches))
         
         for weight, match in zip(weights[indices], matches[indices]):
@@ -356,6 +356,6 @@ if __name__ == "__main__":
     
     new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, verbose=True, random_state=random_state)
      
-    if N_VAL==0 and N_TEST==0:
+    if N_TEST==0:
         ss.replace_player_stats(new_ranks, wins, losses, times_seen, acc, tpr, tnr)
         ss.save_player_stats()

@@ -95,8 +95,8 @@ def save_bets():
 def load_bets():
     global bets
     if os.path.isfile(BETS_FILENAME):
-        bets = pickle.load(open(MATCHES_FILENAME, 'rb'))
-        print('{:d} past bets loaded'.format(len(matches)))
+        bets = pickle.load(open(BETS_FILENAME, 'rb'))
+        print('{:d} past bets loaded'.format(len(bets)))
     else:
         print('File {} not found, starting new bet history'.format(BETS_FILENAME))
         bets = []
