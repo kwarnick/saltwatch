@@ -7,11 +7,13 @@ import pickle
 import saltprocessing as sp
 
 
-PLAYERS_FILENAME = 'players.p'
 MATCHES_FILENAME = 'matches.p'
-RANKS_FILENAME = 'ranks.p'
-player_id_dict, player_name_dict = {}, {}
 matches = []
+
+PLAYERS_FILENAME = 'players.p'
+player_id_dict, player_name_dict = {}, {}
+
+RANKS_FILENAME = 'ranks.p'
 ranks = {}
 wins = {}
 losses = {}
@@ -20,12 +22,29 @@ acc = {}
 tpr = {}
 tnr = {}
 
+BETS_FILENAME = 'bets.p'
+bets = []
+
 
 def load_persistent_data():
-    global player_id_dict, player_name_dict
-    global matches
-    global ranks, times_seen
+    load_dictionaries()
+    load_matches()
+    load_bets()
 
+
+def save_persistent_data():
+    save_dictionaries()
+    save_matches()
+    save_bets()
+
+
+def save_dictionaries():
+    pickle.dump([player_id_dict, player_name_dict], open(PLAYERS_FILENAME, 'wb'))
+    print('{:d} characters saved'.format(len(player_id_dict)))
+
+
+def load_dictionaries():
+    global player_id_dict, player_name_dict
     if os.path.isfile(PLAYERS_FILENAME):
         player_id_dict, player_name_dict = pickle.load(open(PLAYERS_FILENAME, 'rb'))
         print('{:d} characters loaded'.format(len(player_id_dict)))
@@ -33,6 +52,14 @@ def load_persistent_data():
         print('File {} not found, starting new player dictionaries'.format(PLAYERS_FILENAME))
         player_id_dict, player_name_dict = {}, {}
 
+
+def save_matches():
+    pickle.dump(matches, open(MATCHES_FILENAME, 'wb'))
+    print('{:d} match results saved'.format(len(matches)))
+
+    
+def load_matches():
+    global matches
     if os.path.isfile(MATCHES_FILENAME):
         matches = pickle.load(open(MATCHES_FILENAME, 'rb'))
         print('{:d} match results loaded'.format(len(matches)))
@@ -41,18 +68,11 @@ def load_persistent_data():
         matches = []
 
 
-def save_persistent_data():
-    if player_id_dict and player_name_dict:
-        pickle.dump([player_id_dict, player_name_dict], open(PLAYERS_FILENAME, 'wb'))
-        print('{:d} characters saved'.format(len(player_id_dict)))
-    else:
-        pickle.dump([{}, {}], open(PLAYERS_FILENAME, 'wb'))
-
-    if matches:
-        pickle.dump(matches, open(MATCHES_FILENAME, 'wb'))
-        print('{:d} match results saved'.format(len(matches)))
-    else:
-        pickle.dump([], open(MATCHES_FILENAME, 'wb'))
+def save_player_stats():
+    pickle.dump([ranks, wins, losses, times_seen, acc, tpr, tnr], open(RANKS_FILENAME, 'wb'))
+    if not (len(ranks) == len(wins) == len(losses) == len(times_seen) == len(acc) == len(tpr) == len(tnr)):
+        print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
+    print('{:d} players\' stats saved'.format(len(ranks)))
 
 
 def load_player_stats():
@@ -64,11 +84,35 @@ def load_player_stats():
         print('{:d} players\' stats loaded'.format(len(ranks)))
     else:
         print('File {} not found'.format(RANKS_FILENAME))
-        ranks = {}
-        times_seen = {}
-    
+        ranks, wins, losses, times_seen, acc, tpr, tnr = {}, {}, {}, {}, {}, {}, {}
 
-def save_player_stats(new_ranks, new_wins, new_losses, new_times_seen, new_acc, new_tpr, new_tnr):
+
+def save_bets():
+    pickle.dump(bets, open(BETS_FILENAME, 'wb'))
+    print('{:d} past bets saved'.format(len(bets)))
+
+
+def load_bets():
+    global bets
+    if os.path.isfile(BETS_FILENAME):
+        bets = pickle.load(open(MATCHES_FILENAME, 'rb'))
+        print('{:d} past bets loaded'.format(len(matches)))
+    else:
+        print('File {} not found, starting new bet history'.format(BETS_FILENAME))
+        bets = []
+
+
+def add_match(match):
+    global matches 
+    matches.append(match)
+
+
+def add_bet(bet):
+    global bets
+    bets.append(bet)
+ 
+
+def replace_player_stats(new_ranks, new_wins, new_losses, new_times_seen, new_acc, new_tpr, new_tnr):
     global ranks, wins, losses, times_seen, acc, tpr, tnr
     ranks = new_ranks
     wins = new_wins
@@ -77,21 +121,13 @@ def save_player_stats(new_ranks, new_wins, new_losses, new_times_seen, new_acc, 
     acc = new_acc
     tpr = new_tpr
     tnr = new_tnr
-    pickle.dump([ranks, wins, losses, times_seen, acc, tpr, tnr], open(RANKS_FILENAME, 'wb'))
-    if not (len(ranks) == len(wins) == len(losses) == len(times_seen) == len(acc) == len(tpr) == len(tnr)):
-        print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
-    print('{:d} players\' stats saved'.format(len(ranks)))
-
-
-def save_match(match):
-    global matches 
-    matches.append(match)
 
 
 def get_player_id_by_name(pname):
-    if pname not in player_id_dict:
+    try:
+        return player_id_dict[pname]
+    except KeyError:
         return -1
-    return player_id_dict[pname]
 
 
 def assign_new_player_id(pname):
@@ -112,5 +148,5 @@ def assign_new_player_id(pname):
 def act_on_processed_state(mode, status, match):
     if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
         if status == sp.RESULTS:
-            save_match(match)
+            add_match(match)
             print(mode+' match saved: '+str(match))

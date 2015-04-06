@@ -7,6 +7,7 @@ import random
 import saltprocessing as sp
 import saltstorage as ss
 import saltmind as sm
+from time import time
 
 LOGIN_URL = 'http://www.saltybet.com/authenticate?signin=1'
 LOGIN_PAYLOAD = {'email': 'giant_snark@myway.com',
@@ -81,7 +82,12 @@ def place_saltmind_bet(mode, match):
         wager = 1
 
     # Place bet with the chosen wager and player
-    return place_bet(player, wager)
+    success = place_bet(player, wager)
+    if success:
+        ss.add_bet([mode, player, wager, balance, int(time())])
+        return True
+    else:
+        return False
 
 
 def display_player_statistics(pid):

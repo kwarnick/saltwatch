@@ -154,10 +154,3 @@ def process_state(state):
     match = [p1_id, p2_id, winner, p1total, p2total, timestamp]
 
     return mode, status, match
-
-
-
-
-
-
-

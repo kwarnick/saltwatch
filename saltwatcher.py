@@ -12,8 +12,8 @@ import saltbettor as sb
 
 # Global variables/params for timed behaviors
 STATE_CHECK_COOLDOWN = 2.    # Don't get state twice in a cooldown period - prevent duplicates
-DATA_WRITE_PERIOD = 1*60*60  # Save data to disk every hour
-STATS_RELOAD_PERIOD = 1*60*60   # Reload the player stats from disk every hour
+DATA_WRITE_PERIOD = 5*60  # Save data to disk every N seconds
+STATS_RELOAD_PERIOD = 5*60   # Reload the player stats from disk every N seconds
 CONNECTION_RETRY_COOLDOWN = 30  # If connection fails, try to reconnect after a cooldown
 last_state_check = 0 # Start with no cooldown
 last_data_write = 0
