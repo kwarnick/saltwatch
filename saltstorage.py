@@ -6,6 +6,12 @@ import os
 import pickle
 import saltprocessing as sp
 
+# If Python 2.x, change default string encoding to utf-8
+import sys
+if sys.version_info[0]==2:
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
 MATCHES_FILENAME = 'matches.p'
 matches = []
 
