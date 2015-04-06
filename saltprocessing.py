@@ -22,16 +22,16 @@ HEADERS = {
 }
 
 # Modes
-MATCHMAKING = 'M'
-EXHIBITION = 'E'
-TOURNAMENT = 'T'
-UNKNOWN = 'U'
+MATCHMAKING = u'M'
+EXHIBITION = u'E'
+TOURNAMENT = u'T'
+UNKNOWN = u'U'
 mode = UNKNOWN  
 
 # Statuses
-OPEN = 'O'
-LOCKED = 'L'
-RESULTS = 'R'
+OPEN = u'O'
+LOCKED = u'L'
+RESULTS = u'R'
 status = UNKNOWN # Shamelessly borrowed from the modes
 
 
