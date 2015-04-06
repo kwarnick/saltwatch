@@ -6,7 +6,6 @@ import os
 import pickle
 import saltprocessing as sp
 
-
 MATCHES_FILENAME = 'matches.p'
 matches = []
 
