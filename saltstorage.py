@@ -112,14 +112,23 @@ def add_match(match):
     matches.append(match)
 
 
-def add_bet(bet):
+def add_bet(new_bet):
     global bets
+    bet = new_bet
+    # Remove any numpy data types from bet
+    for i, item in enumerate(bet):
+        if isinstance(item, np.generic):
+            bet[i] = np.asscalar(bet[i])
     bets.append(bet)
  
 
 def replace_player_stats(new_ranks, new_wins, new_losses, new_times_seen, new_acc, new_tpr, new_tnr):
     global ranks, wins, losses, times_seen, acc, tpr, tnr
+    # Remove any numpy data types from ranks
     ranks = new_ranks
+    for key in ranks:
+        if isinstance(ranks[key], np.generic):
+            ranks[key] = np.asscalar(ranks[key])
     wins = new_wins
     losses = new_losses
     times_seen = new_times_seen
@@ -148,7 +157,7 @@ def assign_new_player_id(pname):
     print('{} assigned to ID {:d}'.format(pname, new_id))
 
     return new_id
-    
+
 
 def act_on_processed_state(mode, status, match):
     if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
