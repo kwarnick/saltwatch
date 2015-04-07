@@ -121,7 +121,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             print('')
 
     if verbose and len(validation_matches)>0:
-        print('Best validation score: {:.2f}'.format(best_score))
+        print('Best validation score: {:.2f}'.format(best_val_score))
 
     return best_ranks
 
