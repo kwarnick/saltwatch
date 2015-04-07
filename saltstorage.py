@@ -5,6 +5,7 @@ Player dictionaries, match histories, betting histories, etc.
 import os
 import pickle
 import saltprocessing as sp
+import numpy as np
 
 # If Python 2.x, change default string encoding to utf-8
 import sys
