@@ -90,7 +90,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             print('Iteration {:d}'.format(i))
         neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
         neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
-        learning_rate = np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602)
+        learning_rate = 5.*np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602) + 15.
         #learning_rate = 1
         indices = np.random.permutation(len(matches))
         
@@ -104,7 +104,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
        
         if len(validation_matches)>0:
             val_score, _, _ = score_performance(ranks, validation_matches, 'validation', verbose=verbose, return_values=True)
-            if val_score >= best_val_score:
+            if val_score > best_val_score:
                 best_val_score = val_score
                 best_ranks = ranks
                 iterations_since_best_score = 0
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.07
+        neighbor_regularization = 0.00
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
