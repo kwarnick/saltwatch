@@ -84,7 +84,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
 
     best_val_score = 0.0
     best_ranks = ranks.copy()
-    iterations_since_best_score = 0
+    iterations_since_new_best_score = 0
     for i in range(MAX_ITER):
         if verbose:
             print('Iteration {:d}'.format(i))
@@ -107,10 +107,13 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             if val_score > best_val_score:
                 best_val_score = val_score
                 best_ranks = ranks
-                iterations_since_best_score = 0
+                iterations_since_new_best_score = 0
+            elif val_score == best_val_score:
+                best_ranks = ranks
+                iterations_since_new_best_score +=1
             else:
-                iterations_since_best_score +=1
-            if iterations_since_best_score>150:
+                iterations_since_new_best_score +=1
+            if iterations_since_new_best_score>200:
                 if verbose:
                     print('Validation criteria reached, terminating iteration.')
                 break
@@ -214,14 +217,14 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
     if len(test_matches)>0:
         score = score_performance(new_ranks, test_matches, 'test', return_values=True)
 
-    wins, losses, times_seen = evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_sizes, neighborhood_total_weights)
+    wins, losses, times_seen = evaluate_player_stats(matches, pid_list, neighborhood_sizes)
 
-    acc, tpr, tnr = evaluate_prediction_stats(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_sizes, neighborhood_total_weights)
+    acc, tpr, tnr = evaluate_prediction_stats(matches, pid_list, new_ranks)
     
     return new_ranks, wins, losses, times_seen, acc, tpr, tnr
 
 
-def evaluate_prediction_stats(matches, pid_list, lookup, ranks, weights, neighbothood_ids, neighborhood_sizes, neighborhood_total_weights):
+def evaluate_prediction_stats(matches, pid_list, ranks):
     predictions = predict_outcomes(ranks, matches[:,0], matches[:,1])
 
     tp = {pid:0.0 for pid in pid_list}
@@ -262,7 +265,7 @@ def evaluate_prediction_stats(matches, pid_list, lookup, ranks, weights, neighbo
     return acc, tpr, tnr
 
 
-def evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_sizes, neighborhood_total_weights):
+def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
     # Repackage neighborhood sizes for export
     times_seen = {}
     for pid, size in zip(pid_list, neighborhood_sizes):
@@ -286,16 +289,6 @@ def evaluate_player_stats(matches, pid_list, lookup, ranks, weights, neighborhoo
             print('Player id {} has an invalid w/l/t count of {}/{]/{}'.format(pid, w[pid], l[pid], times_seen[pid]))
 
     return w, l, times_seen
-
-    # get retroactive predictions list
-
-    # from predictions, get accuracy
-
-    # from predictions, get true positive rate (% predicted wins that happened)
-
-    #from predictions, get true negative rate (% predicted losses that happened)
-    
-    return times_seen, w, l, acc, tpr, tnr
 
 
 def hyperparameter_search(initial_ranks):
