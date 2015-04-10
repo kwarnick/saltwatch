@@ -73,7 +73,7 @@ def calc_neighborhood_total_weights(neighborhood_weights):
 
 
 def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, 
-        validation_matches=[], neighbor_regularization=0.4, MAX_ITER=200, verbose=True):
+        validation_matches=[], neighbor_regularization=0.4, MAX_ITER=200, base_lr=1.0, frac_lr_const=0.0, verbose=True):
 
     if verbose:
         print('Initial scores: ')
@@ -90,7 +90,8 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
             print('Iteration {:d}'.format(i))
         neighborhood_ranks = calc_neighborhood_ranks(neighborhood_ids, ranks)
         neighborhood_averages = calc_neighborhood_averages(neighborhood_ranks, neighborhood_weights, neighborhood_total_weights)
-        learning_rate = 5.*np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602) + 15.
+        #learning_rate = 5.*np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602) + 15.
+        learning_rate = base_lr*((1-frac_lr_const)*np.power((1+0.1*MAX_ITER)/(i+0.1*MAX_ITER), 0.602) + frac_lr_const)
         #learning_rate = 1
         indices = np.random.permutation(len(matches))
         
@@ -192,7 +193,7 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
         return pct_correct, avg_error, median_error
 
 
-def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, verbose=True, random_state=1334):
+def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, base_lr, frac_lr_const, verbose=True, random_state=1334):
     # Prepare inputs for training models from the current data sets
     pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(matches, pid_dict, pname_dict, initial_ranks=initial_ranks)
     
@@ -212,7 +213,7 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
         validation_matches = []
 
     # Train the model, score and save if relevant
-    new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=verbose)
+    new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, base_lr=base_lr, frac_lr_const=frac_lr_const, verbose=verbose)
 
     if len(test_matches)>0:
         score = score_performance(new_ranks, test_matches, 'test', return_values=True)
@@ -292,10 +293,12 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
 
 
 def hyperparameter_search(initial_ranks):
-    N_VAL = 200
-    N_TEST = 200
-    nr_vals = np.arange(0,0.1,0.01)
+    N_VAL = 500
+    N_TEST = 500
+    nr_vals = np.arange(0, 0.08, 0.02)
     MAX_ITER = 500
+    base_lr_vals = [1., 2., 5., 10., 20.]
+    frac_lr_const_vals = np.arange(0, 1, 0.25)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
@@ -308,18 +311,22 @@ def hyperparameter_search(initial_ranks):
         train_matches = matches[:-N_TEST]
         validation_matches = []
     test_matches = matches[-N_TEST:]
-
-    scores = np.zeros((len(nr_vals),3))
-    for i, neighbor_regularization in enumerate(nr_vals):
-        new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, verbose=False)
+ 
+    import itertools
+    params = list(itertools.product(*[nr_vals, base_lr_vals, frac_lr_const_vals]))
+    scores = np.zeros((len(params),3))
+    for i, (neighbor_regularization, base_lr, frac_lr_const) in enumerate(params):
+        new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, base_lr=base_lr, frac_lr_const=frac_lr_const, verbose=False)
         scores[i,:] = score_performance(new_ranks, test_matches, 'test', return_values=True)
         print('Ranks {:0.3f} - {:0.3f}'.format(np.min(list(new_ranks.values())), np.max(list(new_ranks.values()))))
     
     indices = np.lexsort((scores[:,1], -scores[:,0]))  # Second one has first sort priority
     print('')
-    print('Top 5 parameters by high accuracy and then by low average error: ')
-    for index in indices[:5]:
-        print('{:5.3f}:  {:.2f}% accuracy, {:.3f}/{:.3f} avg/median error'.format(nr_vals[index], scores[index,0], scores[index,1], scores[index,2]))
+    print('Top 10 parameters by high accuracy and then by low average error: ')
+    for index in indices[:10]:
+        print('{}:  {:.2f}% accuracy, {:.3f}/{:.3f} avg/median error'.format(params[index], scores[index,0], scores[index,1], scores[index,2]))
+
+    return params, scores
 
 
 if __name__ == "__main__":
@@ -343,14 +350,16 @@ if __name__ == "__main__":
         random_state = int(sys.argv[5])
     else:
         random_state = 1334
-    
+    base_lr = 10.
+    frac_lr_const = 0.5
+
     ss.load_persistent_data()
     ss.load_player_stats()
     matches = np.array(ss.matches)
     #initial_ranks = ss.ranks
     initial_ranks = {}
     
-    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, verbose=True, random_state=random_state)
+    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, base_lr=base_lr, frac_lr_const=frac_lr_const, verbose=True, random_state=random_state)
      
     if N_TEST==0:
         ss.replace_player_stats(new_ranks, wins, losses, times_seen, acc, tpr, tnr)
