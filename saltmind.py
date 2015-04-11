@@ -295,10 +295,10 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
 def hyperparameter_search(initial_ranks):
     N_VAL = 500
     N_TEST = 500
-    nr_vals = np.arange(0, 0.08, 0.02)
+    nr_vals = np.linspace(0, 0.005, 6)
     MAX_ITER = 500
-    base_lr_vals = [1., 2., 5., 10., 20.]
-    frac_lr_const_vals = np.arange(0, 1, 0.25)
+    base_lr_vals = np.linspace(5, 40, 15)
+    frac_lr_const_vals = np.linspace(0, 1, 11)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
@@ -326,7 +326,9 @@ def hyperparameter_search(initial_ranks):
     for index in indices[:10]:
         print('{}:  {:.2f}% accuracy, {:.3f}/{:.3f} avg/median error'.format(params[index], scores[index,0], scores[index,1], scores[index,2]))
 
-    return params, scores
+    pickle.dump([scores, params], open('hyperparam_results.p','wb'))
+
+    return scores, params
 
 
 if __name__ == "__main__":
@@ -350,7 +352,7 @@ if __name__ == "__main__":
         random_state = int(sys.argv[5])
     else:
         random_state = 1334
-    base_lr = 10.
+    base_lr = 20.
     frac_lr_const = 0.5
 
     ss.load_persistent_data()
