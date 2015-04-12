@@ -6,6 +6,7 @@ import numpy as np
 import saltstorage as ss
 import saltdoc as sd
 from sklearn.cross_validation import train_test_split
+import pickle
 
 
 def predict_outcomes(ranks, pid1, pid2):
@@ -295,7 +296,7 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
 def hyperparameter_search(initial_ranks):
     N_VAL = 500
     N_TEST = 500
-    nr_vals = np.linspace(0, 0.005, 6)
+    nr_vals = [0, 0.005, 0.01]
     MAX_ITER = 500
     base_lr_vals = np.linspace(5, 40, 15)
     frac_lr_const_vals = np.linspace(0, 1, 11)
@@ -325,7 +326,7 @@ def hyperparameter_search(initial_ranks):
     print('Top 10 parameters by high accuracy and then by low average error: ')
     for index in indices[:10]:
         print('{}:  {:.2f}% accuracy, {:.3f}/{:.3f} avg/median error'.format(params[index], scores[index,0], scores[index,1], scores[index,2]))
-
+    
     pickle.dump([scores, params], open('hyperparam_results.p','wb'))
 
     return scores, params
