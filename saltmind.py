@@ -353,7 +353,7 @@ if __name__ == "__main__":
         random_state = int(sys.argv[5])
     else:
         random_state = 1334
-    base_lr = 7.5.
+    base_lr = 7.5
     frac_lr_const = 0.2
 
     ss.load_persistent_data()
