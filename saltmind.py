@@ -296,9 +296,9 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
 def hyperparameter_search(initial_ranks):
     N_VAL = 500
     N_TEST = 500
-    nr_vals = [0, 0.005, 0.01]
+    nr_vals = [0]
     MAX_ITER = 500
-    base_lr_vals = np.linspace(5, 40, 15)
+    base_lr_vals = np.logspace(0.8, 1.3, 15)
     frac_lr_const_vals = np.linspace(0, 1, 11)
 
     ss.load_persistent_data()
