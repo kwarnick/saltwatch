@@ -68,18 +68,19 @@ def place_saltmind_bet(mode, match):
         player = int(round(pred))
     # Get the predicted prob. of chosen player winning. Guaranteed 0.5 >= conf >= 1.0
     conf = abs(pred-0.5)+0.5  
+    odds = conf/(1-conf)
 
     # Determine wager based on mode, prediction and balance
     if mode == sp.MATCHMAKING:
         balance = get_balance()
         if balance <= 1000:
             wager = balance
-        elif conf < 0.55:
-            wager = 1
-        elif conf < 0.90:
+        elif conf > 0.99 and odds < 15:
+            wager = int(balance/10.)
+        elif odds > 15:
             wager = int(balance/100.)
         else:
-            wager = int(balance/10.)
+            wager = 1
     elif mode == sp.TOURNAMENT:
         balance = get_tournament_balance()
         if balance <= 2000:
