@@ -8,6 +8,7 @@ import saltprocessing as sp
 import saltstorage as ss
 import saltmind as sm
 from time import time
+import numpy as np
 
 LOGIN_URL = 'http://www.saltybet.com/authenticate?signin=1'
 LOGIN_PAYLOAD = {'email': 'giant_snark@myway.com',
