@@ -77,7 +77,7 @@ def place_saltmind_bet(mode, match):
         balance = get_balance()
         if balance <= 1000:
             wager = balance
-        elif conf > 0.99 and logodds < 15:
+        elif logodds > 5 and logodds <= 15:
             wager = int(balance/10.)
         elif logodds > 15:
             wager = int(balance/100.)
