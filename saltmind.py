@@ -298,8 +298,9 @@ def hyperparameter_search(initial_ranks):
     N_TEST = 500
     nr_vals = [0]
     MAX_ITER = 500
-    base_lr_vals = np.logspace(0.8, 1.3, 15)
-    frac_lr_const_vals = np.linspace(0, 1, 11)
+    #base_lr_vals = np.logspace(0.0, 1.7, 25)
+    base_lr_vals = np.linspace(1,5,41)
+    frac_lr_const_vals = np.linspace(0, 1, 21)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
@@ -353,7 +354,7 @@ if __name__ == "__main__":
         random_state = int(sys.argv[5])
     else:
         random_state = 1334
-    base_lr = 7.5
+    base_lr = 1.6 #7.5
     frac_lr_const = 0.2
 
     ss.load_persistent_data()
