@@ -364,7 +364,7 @@ if __name__ == "__main__":
     #initial_ranks = ss.ranks
     initial_ranks = {}
     
-    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, base_lr=base_lr, frac_lr_const=frac_lr_const, verbose=True, random_state=random_state)
+    new_ranks, wins, losses, times_seen, acc, tpr, tnr  = run_one_model(matches, ss.player_id_dict, ss.player_name_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, base_lr=base_lr, frac_lr_const=frac_lr_const, min_weight=min_weight, verbose=True, random_state=random_state)
      
     if N_TEST==0:
         ss.replace_player_stats(new_ranks, wins, losses, times_seen, acc, tpr, tnr)
