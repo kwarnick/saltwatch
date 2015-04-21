@@ -24,8 +24,8 @@ def predict_one_outcome(ranks, pid1, pid2):
         return 0.5
 
 
-def calc_weights(t, tmin, tmax):
-    return np.power((1+t-tmin)/(1+tmax-tmin), 2.)
+def calc_weights(t, tmin, tmax, min_weight=0.):
+    return (1-min_weight)*np.power((1+t-tmin)/(1+tmax-tmin), 2.) + min_weight
   
 
 def calc_neighborhoods(matches, weights, pid_list):
@@ -145,14 +145,14 @@ def score_median_error(Y_pred, Y):
     return np.median(np.abs(Y_pred-Y))
 
 
-def prepare_inputs(matches, pid_dict, pname_dict, initial_ranks={}, verbose=True):
+def prepare_inputs(matches, pid_dict, pname_dict, initial_ranks={}, min_weight=0., verbose=True):
     # Per-player attributes
     pid_list, lookup, ranks = prepare_player_related_inputs(matches, pid_dict, pname_dict, initial_ranks=initial_ranks)
     if verbose:
         print('{:d} players found in {:d} matches'.format(len(pid_list), len(matches)))
     
     # Per-match attributes
-    weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_match_related_inputs(matches, pid_list)
+    weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_match_related_inputs(matches, pid_list, min_weight=min_weight)
 
     return pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights
 
@@ -173,8 +173,8 @@ def prepare_player_related_inputs(matches, pid_dict, pname_dict, initial_ranks={
     return pid_list, lookup, ranks
 
 
-def prepare_match_related_inputs(matches, pid_list):
-    weights = calc_weights(matches[:,5].astype(float), np.min(matches[:,5]), np.max(matches[:,5]))
+def prepare_match_related_inputs(matches, pid_list, min_weight=0.):
+    weights = calc_weights(matches[:,5].astype(float), np.min(matches[:,5]), np.max(matches[:,5]), min_weight=min_weight)
     neighborhood_ids, neighborhood_weights = calc_neighborhoods(matches, weights, pid_list)
     neighborhood_sizes = calc_neighborhood_sizes(neighborhood_ids)
     neighborhood_total_weights = calc_neighborhood_total_weights(neighborhood_weights)
@@ -194,9 +194,9 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
         return pct_correct, avg_error, median_error
 
 
-def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, base_lr, frac_lr_const, verbose=True, random_state=1334):
+def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, base_lr, frac_lr_const, min_weight, verbose=True, random_state=1334):
     # Prepare inputs for training models from the current data sets
-    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(matches, pid_dict, pname_dict, initial_ranks=initial_ranks)
+    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(matches, pid_dict, pname_dict, initial_ranks=initial_ranks, min_weight=min_weight)
     
     # Separate validation and training sets from the test set
     if N_TEST>0:
@@ -296,16 +296,16 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
 def hyperparameter_search(initial_ranks):
     N_VAL = 500
     N_TEST = 500
-    nr_vals = [0]
     MAX_ITER = 500
-    #base_lr_vals = np.logspace(0.0, 1.7, 25)
-    base_lr_vals = np.linspace(1,20,77)
+    min_weight = 1.
+    nr_vals = [0]
+    base_lr_vals = np.linspace(3,10,29)
     frac_lr_const_vals = np.linspace(0, 1, 11)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
-    
-    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(matches, ss.player_id_dict, ss.player_name_dict, initial_ranks=initial_ranks)
+
+    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(matches, ss.player_id_dict, ss.player_name_dict, initial_ranks=initial_ranks, min_weight=min_weight)
 
     if N_VAL>0:
         train_matches, validation_matches = train_test_split(matches[:-N_TEST], test_size=N_VAL)
@@ -356,6 +356,7 @@ if __name__ == "__main__":
         random_state = 1334
     base_lr = 4.5 #1.6 #7.5 
     frac_lr_const = 0.4
+    min_weight = 0.
 
     ss.load_persistent_data()
     ss.load_player_stats()
