@@ -297,7 +297,7 @@ def hyperparameter_search(initial_ranks):
     N_VAL = 500
     N_TEST = 500
     MAX_ITER = 500
-    min_weight = 1.
+    min_weight = 0.
     nr_vals = [0]
     base_lr_vals = np.linspace(3,10,29)
     frac_lr_const_vals = np.linspace(0, 1, 11)
