@@ -354,8 +354,8 @@ if __name__ == "__main__":
         random_state = int(sys.argv[5])
     else:
         random_state = 1334
-    base_lr = 4.5 #1.6 #7.5 
-    frac_lr_const = 0.4
+    base_lr = 7.5 #4.5 #1.6  
+    frac_lr_const = 0.2 #0.4
     min_weight = 0.
 
     ss.load_persistent_data()
