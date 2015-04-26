@@ -294,13 +294,13 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
 
 
 def hyperparameter_search(initial_ranks):
-    N_VAL = 500
-    N_TEST = 500
+    N_VAL = 1000
+    N_TEST = 1000
     MAX_ITER = 500
     min_weight = 0.
     nr_vals = [0]
-    base_lr_vals = np.linspace(3,10,29)
-    frac_lr_const_vals = np.linspace(0, 1, 11)
+    base_lr_vals = np.linspace(1,20,77)
+    frac_lr_const_vals = np.linspace(0, 1, 21)
 
     ss.load_persistent_data()
     matches = np.array(ss.matches)
@@ -354,8 +354,8 @@ if __name__ == "__main__":
         random_state = int(sys.argv[5])
     else:
         random_state = 1334
-    base_lr = 7.5 #4.5 #1.6  
-    frac_lr_const = 0.2 #0.4
+    base_lr = 14.25 #7.5 #4.5 #1.6  
+    frac_lr_const = 0.4 #0.2 #0.4
     min_weight = 0.
 
     ss.load_persistent_data()
