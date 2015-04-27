@@ -115,7 +115,7 @@ def train_model(matches, pid_list, lookup, ranks, weights, neighborhood_ids, nei
                 iterations_since_new_best_score +=1
             else:
                 iterations_since_new_best_score +=1
-            if iterations_since_new_best_score>200:
+            if iterations_since_new_best_score>250:
                 if verbose:
                     print('Validation criteria reached, terminating iteration.')
                 break
@@ -337,11 +337,11 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.00
+        neighbor_regularization = 0.20
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
-        N_VAL = 200
+        N_VAL = 500
     if len(sys.argv)>3:
         N_TEST = int(sys.argv[3])
     else:
@@ -349,13 +349,13 @@ if __name__ == "__main__":
     if len(sys.argv)>4:
         MAX_ITER = int(sys.argv[4])
     else:
-        MAX_ITER = 500
+        MAX_ITER = 1000
     if len(sys.argv)>5:
         random_state = int(sys.argv[5])
     else:
         random_state = 1334
-    base_lr = 14.25 #7.5 #4.5 #1.6  
-    frac_lr_const = 0.4 #0.2 #0.4
+    base_lr = 0.5 #7.5 #4.5 #1.6  
+    frac_lr_const = 1. #0.2 #0.4
     min_weight = 0.
 
     ss.load_persistent_data()
