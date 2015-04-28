@@ -337,7 +337,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.20
+        neighbor_regularization = 0.02
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
@@ -349,13 +349,13 @@ if __name__ == "__main__":
     if len(sys.argv)>4:
         MAX_ITER = int(sys.argv[4])
     else:
-        MAX_ITER = 1000
+        MAX_ITER = 250
     if len(sys.argv)>5:
         random_state = int(sys.argv[5])
     else:
         random_state = 1334
-    base_lr = 0.5 #7.5 #4.5 #1.6  
-    frac_lr_const = 1. #0.2 #0.4
+    base_lr = 7.5 #4.5 #1.6  
+    frac_lr_const = 0.2 #0.4
     min_weight = 0.
 
     ss.load_persistent_data()
