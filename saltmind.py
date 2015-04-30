@@ -337,7 +337,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         neighbor_regularization = float(sys.argv[1])
     else:
-        neighbor_regularization = 0.04
+        neighbor_regularization = 0.02
     if len(sys.argv)>2:
         N_VAL = int(sys.argv[2])
     else:
