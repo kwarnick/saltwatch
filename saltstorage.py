@@ -31,6 +31,7 @@ tnr = {}
 BETS_FILENAME = 'bets.p'
 bets = []
 
+TEMP_FILENAME = 'tmp.p'
 
 def load_persistent_data():
     load_dictionaries()
@@ -45,7 +46,9 @@ def save_persistent_data():
 
 
 def save_dictionaries():
-    pickle.dump([player_id_dict, player_name_dict], open(PLAYERS_FILENAME, 'wb'))
+    with open(TEMP_FILENAME, 'wb') as outfile:
+        pickle.dump([player_id_dict, player_name_dict], outfile)
+        os.rename(TEMP_FILENAME, PLAYERS_FILENAME)
     print('{:d} characters saved'.format(len(player_id_dict)))
 
 
@@ -60,7 +63,9 @@ def load_dictionaries():
 
 
 def save_matches():
-    pickle.dump(matches, open(MATCHES_FILENAME, 'wb'))
+    with open(TEMP_FILENAME, 'wb') as outfile:
+        pickle.dump(matches, outfile)
+        os.rename(TEMP_FILENAME, MATCHES_FILENAME)
     print('{:d} match results saved'.format(len(matches)))
 
     
@@ -75,7 +80,9 @@ def load_matches():
 
 
 def save_player_stats():
-    pickle.dump([ranks, wins, losses, times_seen, acc, tpr, tnr], open(RANKS_FILENAME, 'wb'))
+    with open(TEMP_FILENAME, 'wb') as outfile:
+        pickle.dump([ranks, wins, losses, times_seen, acc, tpr, tnr], TEMP_FILENAME)
+        os.rename(TEMP_FILENAME, RANKS_FILENAME)
     if not (len(ranks) == len(wins) == len(losses) == len(times_seen) == len(acc) == len(tpr) == len(tnr)):
         print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
     print('{:d} players\' stats saved'.format(len(ranks)))
@@ -94,7 +101,9 @@ def load_player_stats():
 
 
 def save_bets():
-    pickle.dump(bets, open(BETS_FILENAME, 'wb'))
+    with open(TEMP_FILENAME, 'wb') as outfile:
+        pickle.dump(bets, outfile)
+        os.rename(TEMP_FILENAME, BETS_FILENAME)
     print('{:d} past bets saved'.format(len(bets)))
 
 
