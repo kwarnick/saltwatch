@@ -104,5 +104,5 @@ if __name__ == "__main__":
     sb.login()
 
     websocket.enableTrace(True)
-    ws = connect('www-cdn-twitch.saltybet.com', 8000)
+    ws = connect('www-cdn-twitch.saltybet.com', 1337)
     ws.run_forever()
