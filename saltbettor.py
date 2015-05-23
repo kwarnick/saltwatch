@@ -73,7 +73,7 @@ def place_saltmind_bet(mode, match):
     # Decrease odds by past prediction accuracies
     reduced_odds = 1 + (odds-1) * ss.tpr[match[player]] * ss.tnr[match[1-player]]
     logodds = np.log(reduced_odds)
-    print('Final log odds: {:.2f} of possible {:.2f}'.format(logodds, np.log(odds))
+    print('Final log odds: {:.2f} of possible {:.2f}'.format(logodds, np.log(odds)))
 
     # Determine wager based on mode, prediction and balance
     if mode == sp.MATCHMAKING:
