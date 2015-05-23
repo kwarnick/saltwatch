@@ -97,7 +97,7 @@ def place_saltmind_bet(mode, match):
     # Place bet with the chosen wager and player
     success = place_bet(player, wager)
     if success:
-        ss.add_bet([mode, player, conf, wager, balance, int(time())])
+        ss.add_bet([mode, player, reduced_odds, wager, balance, int(time())])
         return True
     else:
         return False
