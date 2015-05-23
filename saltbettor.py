@@ -71,7 +71,7 @@ def place_saltmind_bet(mode, match):
     conf = abs(pred-0.5)+0.5  
     odds = conf/(1-conf)
     # Decrease odds by past prediction accuracies
-    reduced_odds = 1 + (odds-1) * ss.tnr[match[player]] * ss.tpr[match[1-player]]
+    reduced_odds = 1 + (odds-1) * ss.acc[match[player]] * ss.acc[match[1-player]]
     logodds = np.log(reduced_odds)
     print('Final log odds: {:.2f} of possible {:.2f}'.format(logodds, np.log(odds)))
 
