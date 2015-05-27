@@ -66,7 +66,7 @@ def on_close(ws):
         sleep(CONNECTION_RETRY_COOLDOWN)  
         try:
             websocket.enableTrace(True)
-            ws = connect('www-cdn-twitch.saltybet.com', 8000)
+            ws = connect('www-cdn-twitch.saltybet.com', 1337)
             ws.run_forever()
             break
         except: 
