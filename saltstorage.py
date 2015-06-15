@@ -81,7 +81,7 @@ def load_matches():
 
 def save_player_stats():
     with open(TEMP_FILENAME, 'wb') as outfile:
-        pickle.dump([ranks, wins, losses, times_seen, acc, tpr, tnr], TEMP_FILENAME)
+        pickle.dump([ranks, wins, losses, times_seen, acc, tpr, tnr], outfile)
         os.rename(TEMP_FILENAME, RANKS_FILENAME)
     if not (len(ranks) == len(wins) == len(losses) == len(times_seen) == len(acc) == len(tpr) == len(tnr)):
         print('Stat list length mismatch!', len(ranks), len(wins), len(losses), len(times_seen), len(acc), len(tpr), len(tnr))
