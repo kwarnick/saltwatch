@@ -282,7 +282,7 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
     # check that wins + losses = times_seen
     for pid in pid_list:
         if not (w[pid] + l[pid] == times_seen[pid]):
-            print('Player id {} has an invalid w/l/t count of {}/{]/{}'.format(pid, w[pid], l[pid], times_seen[pid]))
+            print('Player id {} has an invalid w/l/t count of {}/{}/{}'.format(pid, w[pid], l[pid], times_seen[pid]))
 
     return w, l, times_seen
 
