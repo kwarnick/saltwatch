@@ -10,7 +10,7 @@ import pickle
 
 
 def predict_outcomes(ranks, pid1, pid2):
-    # 0 means p1 wins, 1 means p2 wins
+    # <0.5 means p1 wins, >0.5 means p2 wins
     if len(pid1)==1:
         return predict_one_outcome(ranks, pid1, pid2)
     else:
@@ -236,12 +236,8 @@ def evaluate_prediction_stats(matches, pid_list, ranks):
     
     for match,pred_val in zip(matches,predictions):
         # Get player IDs of the winner and loser
-        if match[2] == 0:
-            winner_id = match[0]
-            loser_id = match[1]
-        elif match[2] == 1:
-            winner_id = match[1]
-            loser_id = match[0]
+        winner_id = match[match[2]]
+        loser_id = match[1-match[2]]
         # See whether match[0] or match[1] was predicted to win
         if pred_val == 0.5:
             pred = int(round(np.random.random()))  
@@ -278,12 +274,10 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
     l = {pid:0 for pid in pid_list}
     for match in matches:
         # match[2] indicates whether match[0] or match[1] won
-        if match[2] == 0:
-            w[match[0]] += 1
-            l[match[1]] += 1
-        elif match[2] == 1:
-            w[match[1]] += 1
-            l[match[0]] += 1
+        winner = match[2]
+        loser = 1-match[2]
+        w[winner] += 1
+        l[loser] += 1
 
     # check that wins + losses = times_seen
     for pid in pid_list:
