@@ -274,8 +274,8 @@ def evaluate_player_stats(matches, pid_list, neighborhood_sizes):
     l = {pid:0 for pid in pid_list}
     for match in matches:
         # match[2] indicates whether match[0] or match[1] won
-        winner = match[2]
-        loser = 1-match[2]
+        winner = match[match[2]]
+        loser = match[1-match[2]]
         w[winner] += 1
         l[loser] += 1
 
