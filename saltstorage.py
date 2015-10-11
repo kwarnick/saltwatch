@@ -173,4 +173,4 @@ def act_on_processed_state(mode, status, match):
     if mode == sp.MATCHMAKING or mode == sp.TOURNAMENT:
         if status == sp.RESULTS:
             add_match(match)
-            print(mode+' match saved: '+str(match))
+            print(mode+' match saved: '+str(match)+'\n')

@@ -59,18 +59,6 @@ def on_close(ws):
     last_data_write = time()
     print("### closed ###")
 
-    while True:
-        # Retry connection after cooldown period
-        print('Waiting {:d}s to reconnect'.format(CONNECTION_RETRY_COOLDOWN))
-        # Attempt reconnect
-        sleep(CONNECTION_RETRY_COOLDOWN)  
-        try:
-            websocket.enableTrace(True)
-            ws = connect('www-cdn-twitch.saltybet.com', 1337)
-            ws.run_forever()
-            break
-        except: 
-            continue
 
 
 def on_open(ws):
@@ -86,7 +74,7 @@ def connect(server, port):
     hskey = resp.read().decode('utf-8').split(':')[0]
 
     ws = websocket.WebSocketApp(
-                    'ws://'+server+':'+str(port)+'/socket.io/1/websocket/'+hskey,
+            'ws://'+server+':'+str(port)+'/socket.io/1/websocket/'+hskey,
                     on_open   = on_open,
                     on_message = on_message,
                     on_close = on_close)
@@ -106,3 +94,23 @@ if __name__ == "__main__":
     websocket.enableTrace(True)
     ws = connect('www-cdn-twitch.saltybet.com', 1337)
     ws.run_forever()
+    while True:
+        try:
+            # Retry connection after cooldown period
+            print('Waiting {:d}s to reconnect'.format(CONNECTION_RETRY_COOLDOWN))
+            # Attempt reconnect
+            sleep(CONNECTION_RETRY_COOLDOWN)  
+            ws.run_forever()
+        except:
+            break
+            
+
+    #while True:
+    #    try:
+    #        websocket.enableTrace(True)
+    #        ws = connect('www-cdn-twitch.saltybet.com', 1337)
+    #        ws.run_forever()
+    #        break
+    #    except: 
+    #        continue
+
