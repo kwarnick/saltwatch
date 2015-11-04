@@ -99,7 +99,7 @@ def place_saltmind_bet(mode, match):
     elif mode == sp.EXHIBITION:
         #balance = get_balance()
         #wager = 1
-        continue 
+        wager = 0 
 
     # Place bet with the chosen wager and player
     if wager>0:
