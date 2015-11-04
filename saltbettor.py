@@ -79,14 +79,17 @@ def place_saltmind_bet(mode, match):
     print('Final log odds: {:.2f} of possible {:.2f}'.format(logodds, np.log(odds)))
 
     # Determine wager based on mode, prediction and balance
+    wager = 0
     if mode == sp.MATCHMAKING:
         balance = get_balance()
         if balance <= 2000:
             wager = balance
         elif logodds > 12:
             wager = int(balance/100.)
+        elif logodds > 1:
+            wager = 10000
         else:
-            wager = 5000
+            wager = 1000
     elif mode == sp.TOURNAMENT:
         balance = get_tournament_balance()
         if balance <= 2000:
@@ -94,11 +97,15 @@ def place_saltmind_bet(mode, match):
         else:
             wager = int(balance/2.)
     elif mode == sp.EXHIBITION:
-        balance = get_balance()
-        wager = 1
+        #balance = get_balance()
+        #wager = 1
+        continue 
 
     # Place bet with the chosen wager and player
-    success = place_bet(player, wager)
+    if wager>0:
+        success = place_bet(player, wager)
+    else:
+        success = False
     if success:
         ss.add_bet([mode, player, reduced_odds, wager, balance, int(time())])
         return True
