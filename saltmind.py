@@ -19,7 +19,7 @@ def predict_outcomes(ranks, pid1, pid2):
 
 def predict_one_outcome(ranks, pid1, pid2):
     try:
-        return 1./(1+np.exp(ranks[pid1]-ranks[pid2]))
+        return np.divide(1, 1+np.power(10,((ranks[pid2]-ranks[pid1])/400.)))
     except KeyError:
         return 0.5
 
@@ -194,35 +194,75 @@ def score_performance(ranks, matches, desc_str, verbose=True, return_values=Fals
         return pct_correct, avg_error, median_error
 
 
+def calc_delta(E, epsilon=0.05):
+    clipped_E  = np.clip(E, epsilon, 1.-epsilon)
+    return 400*np.log10((1-clipped_E)/clipped_E)
+
+
 def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, neighbor_regularization, MAX_ITER, base_lr, frac_lr_const, min_weight, verbose=True, random_state=1334):
-    # Prepare inputs for training models from the current data sets
-    pid_list, lookup, ranks, weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights = prepare_inputs(matches, pid_dict, pname_dict, initial_ranks=initial_ranks, min_weight=min_weight)
     
-    # Separate validation and training sets from the test set
-    if N_TEST>0:
-        train_val_matches = matches[:-N_TEST]
-        test_matches = matches[-N_TEST:]
-    elif N_TEST==0:
-        train_val_matches = matches
-        test_matches = []
+    from sklearn.cross_validation import KFold
+    kf = KFold(len(matches), n_folds=50, shuffle=True)
+    for train_index, test_index in kf:
+        break
 
-    # Split the validation and training sets
-    if N_VAL>0:
-        train_matches, validation_matches = train_test_split(train_val_matches, test_size=N_VAL, random_state=random_state)
-    elif N_VAL==0:
-        train_matches = train_val_matches
-        validation_matches = []
+    num_characters = np.max(matches[:,:2])+1
+    transition = np.zeros(shape=(num_characters, num_characters), dtype=np.int16)
+    for match in matches[train_index]:
+        transition[match[match[2]], match[1-match[2]]] += 1
+    times_seen = np.sum(transition, axis=0) + np.sum(transition, axis=1)
+    win_rate = np.sum(transition, axis=1) / times_seen.astype(float)
+    weights = transition + transition.T
 
-    # Train the model, score and save if relevant
-    new_ranks = train_model(train_matches, pid_list, lookup, ranks.copy(), weights, neighborhood_ids, neighborhood_weights, neighborhood_sizes, neighborhood_total_weights, validation_matches=validation_matches, neighbor_regularization=neighbor_regularization, MAX_ITER=MAX_ITER, base_lr=base_lr, frac_lr_const=frac_lr_const, verbose=verbose)
+    np.seterr(invalid='ignore')
+    transition_prob = np.divide(transition.astype(float), weights)
+    transition_prob = np.nan_to_num(transition_prob)
 
-    if len(test_matches)>0:
-        score = score_performance(new_ranks, test_matches, 'test', return_values=True)
+    power_levels = np.random.randn(num_characters)
+    for i in range(20):
+        for pid in range(num_characters):
+            opponents = np.where(weights[pid,:])[0]
+            if len(opponents)==0:
+                continue
+            E = transition_prob[pid, opponents]
+            deltas = calc_delta(E, epsilon=0.05)
+            idx_max = np.where(E==1)[0]
+            idx_min = np.where(E==0)[0]
+            suggested_vals = power_levels[opponents] - deltas
+            if len(idx_max)>0:
+                suggested_vals[idx_max] = np.max(suggested_vals[idx_max])
+            if len(idx_min)>0:
+                suggested_vals[idx_min] = np.min(suggested_vals[idx_min])
+            final_val = np.average(suggested_vals, weights=weights[pid, opponents])
+            power_levels[pid] = final_val
 
-    wins, losses, times_seen = evaluate_player_stats(matches, pid_list, neighborhood_sizes)
+    rows, cols = np.where(transition)
+    probs = np.zeros(shape=(len(power_levels),len(power_levels)))
+    for row,col in zip(rows, cols):
+        probs[row,col] = predict_one_outcome(power_levels, row, col)
+    preds = probs>0.5
+    preds[probs==0.5] = 0.5
 
-    acc, tpr, tnr = evaluate_prediction_stats(matches, pid_list, new_ranks)
-    
+    correct = 0
+    for row,col in zip(rows, cols):
+        if preds[row,col] == transition_prob[row,col]>0.5:
+            correct += transition[row,col]
+    print('Training accuracy {}'.format(correct/np.sum(transition)))
+
+    correct = 0
+    for row,col,winner in matches[test_index,:3]:
+        pred = predict_one_outcome(power_levels, row, col) < 0.5
+        if pred==winner:
+            correct += 1
+    print('Test accuracy {}'.format(correct/float(len(test_index))))
+
+    new_ranks = {pid:power_levels[pid] for pid in range(num_characters)}
+    wins = {pid:val for pid,val in zip(range(num_characters),np.sum(transition, axis=1))}
+    losses = {pid:val for pid,val in zip(range(num_characters),np.sum(transition, axis=0))}
+    times_seen = {pid:val for pid,val in zip(range(num_characters),times_seen)}
+   
+    acc, tpr, tnr = evaluate_prediction_stats(matches, list(range(num_characters)), new_ranks) 
+
     return new_ranks, wins, losses, times_seen, acc, tpr, tnr
 
 
