@@ -239,12 +239,13 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
     probs = np.zeros(shape=(len(power_levels),len(power_levels)))
     for row,col in zip(rows, cols):
         probs[row,col] = predict_one_outcome(power_levels, row, col)
-    preds = probs>0.5
+    preds = probs<0.5
     preds[probs==0.5] = 0.5
 
     correct = 0
     for row,col in zip(rows, cols):
-        if preds[row,col] == float(transition[row,col])/weights[row,col]>0.5:
+        winner = 1 - float(transition[row,col])/weights[row,col]>0.5
+        if preds[row,col] == winner:
             correct += transition[row,col]
     print('Training accuracy {}'.format(correct/np.sum(transition)))
 
