@@ -215,8 +215,6 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
     weights = transition + transition.T
 
     np.seterr(invalid='ignore')
-    transition_prob = np.divide(transition.astype(float), weights)
-    transition_prob = np.nan_to_num(transition_prob)
 
     power_levels = np.random.randn(num_characters)
     for i in range(20):
@@ -224,7 +222,8 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
             opponents = np.where(weights[pid,:])[0]
             if len(opponents)==0:
                 continue
-            E = transition_prob[pid, opponents]
+            E = np.divide(transition[pid].astype(float), weights[pid])[opponents]
+            E = np.nan_to_num(E)
             deltas = calc_delta(E, epsilon=0.05)
             idx_max = np.where(E==1)[0]
             idx_min = np.where(E==0)[0]
@@ -245,7 +244,7 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
 
     correct = 0
     for row,col in zip(rows, cols):
-        if preds[row,col] == transition_prob[row,col]>0.5:
+        if preds[row,col] == float(transition[row,col])/weights[row,col]>0.5:
             correct += transition[row,col]
     print('Training accuracy {}'.format(correct/np.sum(transition)))
 
