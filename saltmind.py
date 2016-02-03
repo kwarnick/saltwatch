@@ -227,7 +227,7 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
             deltas = calc_delta(E, epsilon=0.05)
             idx_max = np.where(E==1)[0]
             idx_min = np.where(E==0)[0]
-            suggested_vals = power_levels[opponents] + deltas
+            suggested_vals = power_levels[opponents] - deltas
             if len(idx_max)>0:
                 suggested_vals[idx_max] = np.max(suggested_vals[idx_max])
             if len(idx_min)>0:
@@ -239,19 +239,19 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
     probs = np.zeros(shape=(len(power_levels),len(power_levels)))
     for row,col in zip(rows, cols):
         probs[row,col] = predict_one_outcome(power_levels, row, col)
-    preds = probs<0.5
+    preds = probs>0.5
     preds[probs==0.5] = 0.5
 
     correct = 0
     for row,col in zip(rows, cols):
-        winner = 1 - float(transition[row,col])/weights[row,col]>0.5
+        winner = float(transition[row,col])/weights[row,col]<0.5
         if preds[row,col] == winner:
             correct += transition[row,col]
     print('Training accuracy {}'.format(correct/np.sum(transition)))
 
     correct = 0
     for row,col,winner in matches[test_index,:3]:
-        pred = predict_one_outcome(power_levels, row, col) < 0.5
+        pred = predict_one_outcome(power_levels, row, col) > 0.5
         if pred==winner:
             correct += 1
     print('Test accuracy {}'.format(correct/float(len(test_index))))
