@@ -19,7 +19,7 @@ def predict_outcomes(ranks, pid1, pid2):
 
 def predict_one_outcome(ranks, pid1, pid2):
     try:
-        return np.divide(1, 1+np.power(10,((ranks[pid2]-ranks[pid1])/400.)))
+        return np.divide(1, 1+np.power(10,((ranks[pid1]-ranks[pid2])/400.)))
     except KeyError:
         return 0.5
 
@@ -227,7 +227,7 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
             deltas = calc_delta(E, epsilon=0.05)
             idx_max = np.where(E==1)[0]
             idx_min = np.where(E==0)[0]
-            suggested_vals = power_levels[opponents] - deltas
+            suggested_vals = power_levels[opponents] + deltas
             if len(idx_max)>0:
                 suggested_vals[idx_max] = np.max(suggested_vals[idx_max])
             if len(idx_min)>0:
