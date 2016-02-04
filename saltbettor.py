@@ -115,9 +115,9 @@ def place_saltmind_bet(mode, match):
 
 def display_player_statistics(pid):
     try:
-        print('{:4}:  Record:  {:2}/{:2}/{:2} {:3d}%   Rank: {:5.2f}   Acc/TPR/TNR: {:3d}%/{:3d}%/{:3d}%'.format(pid, ss.wins[pid], ss.losses[pid], ss.times_seen[pid], (int(ss.wins[pid]/float(ss.times_seen[pid])*100) if ss.times_seen[pid]>0 else 0), ss.ranks[pid], int(ss.acc[pid]*100), int(ss.tpr[pid]*100), int(ss.tnr[pid]*100)))
+        print('{:4}:  Record: {:2}/{:2}/{:2} {:3d}%   Rank: {:6.2f}   Acc/TPR/TNR: {:3d}%/{:3d}%/{:3d}%'.format(pid, ss.wins[pid], ss.losses[pid], ss.times_seen[pid], (int(ss.wins[pid]/float(ss.times_seen[pid])*100) if ss.times_seen[pid]>0 else 0), ss.ranks[pid], int(ss.acc[pid]*100), int(ss.tpr[pid]*100), int(ss.tnr[pid]*100)))
     except KeyError:
-        print('    :  Record:   0/ 0/ 0    %   Rank:         Acc/TPR/TNR:    %/   %/   %')
+        print('    :  Record:  0/ 0/ 0    %   Rank:          Acc/TPR/TNR:    %/   %/   %')
 
 
 def display_outcome_prediction(pid1, pid2):
