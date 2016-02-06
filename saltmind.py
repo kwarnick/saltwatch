@@ -225,13 +225,13 @@ def run_one_model(matches, pid_dict, pname_dict, N_VAL, N_TEST, initial_ranks, n
             E = np.divide(transition[pid].astype(float), weights[pid])[opponents]
             E = np.nan_to_num(E)
             deltas = calc_delta(E, epsilon=0.05)
-            idx_max = np.where(E==1)[0]
-            idx_min = np.where(E==0)[0]
+            #idx_max = np.where(E==1)[0]
+            #idx_min = np.where(E==0)[0]
             suggested_vals = power_levels[opponents] - deltas
-            if len(idx_max)>0:
-                suggested_vals[idx_max] = np.max(suggested_vals[idx_max])
-            if len(idx_min)>0:
-                suggested_vals[idx_min] = np.min(suggested_vals[idx_min])
+            #if len(idx_max)>0:
+            #    suggested_vals[idx_max] = np.max(suggested_vals[idx_max])
+            #if len(idx_min)>0:
+            #    suggested_vals[idx_min] = np.min(suggested_vals[idx_min])
             final_val = np.average(suggested_vals, weights=weights[pid, opponents])
             power_levels[pid] = final_val
 
